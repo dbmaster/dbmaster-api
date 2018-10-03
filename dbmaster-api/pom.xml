@@ -14,6 +14,10 @@
    <version>1.12-SNAPSHOT</version>
    <packaging>jar</packaging>
 
+   <properties>
+      <release.version>1.12</release.version>
+   </properties>
+
    <licenses>
       <license>
          <name>The Apache License, Version 2.0</name>
@@ -33,7 +37,7 @@
       <connection>scm:git:git://github.com/dbmaster/dbmaster-api.git</connection>
       <developerConnection>scm:git:ssh://github.com:dbmaster/dbmaster-api.git</developerConnection>
       <url>https://github.com/dbmaster/dbmaster-api/tree/master/dbmaster-api</url>
-      <tag>v${releaseVersion}</tag>
+      <tag>v${release.version}</tag>
    </scm>
 
    <dependencies>
@@ -153,8 +157,7 @@
                      <archive>
                         <manifestEntries>
                            <Bundle-ManifestVersion>2</Bundle-ManifestVersion>
-                           <Bundle-Description>Contains DBMaster public api. Helps to track api dependencies between dbmaster and its
-                              plugins</Bundle-Description>
+                           <Bundle-Description>Contains DBMaster public api. Helps to track api dependencies between dbmaster and its plugins</Bundle-Description>
                            <Bundle-Name>DBMaster API</Bundle-Name>
                            <Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
                            <Bundle-Version>${release.version}</Bundle-Version>
