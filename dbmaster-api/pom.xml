@@ -6,13 +6,36 @@
    <parent>
       <groupId>io.dbmaster</groupId>
       <artifactId>dbmaster-parent</artifactId>
-      <version>1.11</version>
-      <relativePath>../dbmaster-parent/pom.xml</relativePath>
+      <version>1.12-SNAPSHOT</version>
+      <!--relativePath>../dbmaster-parent/pom.xml</relativePath-->
    </parent>
 
    <artifactId>dbmaster-api</artifactId>
-   <version>${project.parent.version}-SNAPSHOT</version>
+   <version>1.12-SNAPSHOT</version>
    <packaging>jar</packaging>
+
+   <licenses>
+      <license>
+         <name>The Apache License, Version 2.0</name>
+         <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+      </license>
+   </licenses>
+
+   <developers>
+      <developer>
+         <id>schristin</id>
+         <name>Slava Christin</name>
+         <organization>Branegy Systems, Inc</organization>
+      </developer>
+   </developers>
+
+   <scm>
+      <connection>scm:git:git://github.com/dbmaster/dbmaster-api.git</connection>
+      <developerConnection>scm:git:ssh://github.com:dbmaster/dbmaster-api.git</developerConnection>
+      <url>https://github.com/dbmaster/dbmaster-api/tree/master/dbmaster-api</url>
+      <tag>v${releaseVersion}</tag>
+   </scm>
+
    <dependencies>
       <dependency>
          <groupId>org.slf4j</groupId>
@@ -59,6 +82,7 @@
          <artifactId>xstream</artifactId>
       </dependency>
    </dependencies>
+
    <profiles>
       <profile>
          <id>deploy-dbmaster-api</id>
@@ -163,15 +187,6 @@
          <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-checkstyle-plugin</artifactId>
-         </plugin>
-         <plugin>
-            <artifactId>maven-deploy-plugin</artifactId>
-            <executions>
-               <execution>
-                  <id>default-deploy</id>
-                  <phase>none</phase>
-               </execution>
-            </executions>
          </plugin>
       </plugins>
    </build>
