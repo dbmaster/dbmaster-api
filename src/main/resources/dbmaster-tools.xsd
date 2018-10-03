@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--  TODOs
+        * Add descriptions for elements and attributes
+        * Replace commas with spaces for in xs:list
+        * Define schema (dbm) for xml elements
+        * Define url http://www.dbmaster.io/schema/tools/v1
+        * Add version attribute for root element tools
+ -->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" 
+           xmlns="http://www.dbmaster.io/schema/tools/v1.0"
+           elementFormDefault="qualified" attributeFormDefault="unqualified">
+    <xs:element name="tools">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="tool" type="DBMasterTool" maxOccurs="unbounded" />
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:complexType name="DBMasterTool">
+
+        <xs:sequence>
+            <xs:element name="description" type="xs:string" maxOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>Simple text-based description of the tool</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+
+            <xs:element name="help" type="xs:string" minOccurs="0"  maxOccurs="1" />
+
+            <xs:element name="parameters" minOccurs="0" maxOccurs="1">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="parameter" type="ParameterType" maxOccurs="unbounded" />
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+
+            <xs:element name="output" type="OutputType" minOccurs="1" maxOccurs="unbounded" />
+        </xs:sequence>
+
+        <xs:attribute name="id" use="required">
+            <xs:simpleType>
+                <xs:restriction base="xs:string">
+                    <xs:pattern value="[a-zA-Z_\-]{0,64}" />
+                </xs:restriction>
+            </xs:simpleType>
+        </xs:attribute>
+
+        <xs:attribute name="title" type="xs:string" use="required" />
+
+        <xs:attribute name="visible" type="xs:boolean" default="true">
+            <xs:annotation>
+                <xs:documentation>Defines if the tool is visible in the global list of tools. 
+                            Useful when defining drill-down reports or tools</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+
+        <xs:attribute name="projectTypes">
+
+            <xs:simpleType>
+                <xs:restriction>
+                    <xs:simpleType>
+                        <xs:list>
+                            <xs:simpleType>
+                                <xs:restriction base="xs:token">
+                                    <xs:enumeration value="inventory"/>
+                                    <xs:enumeration value="dictionary"/>
+                                </xs:restriction>
+                            </xs:simpleType>
+                        </xs:list>
+                    </xs:simpleType>    
+                    <xs:minLength value="1"/>
+                </xs:restriction>
+            </xs:simpleType>
+
+        </xs:attribute>
+
+    </xs:complexType>
+
+    <xs:complexType name="ParameterType">
+
+        <xs:sequence>
+            <xs:element name="values" minOccurs="0" maxOccurs="1">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="string" type="xs:string" minOccurs="1" maxOccurs="unbounded" />
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+
+        </xs:sequence>
+
+        <xs:attribute name="name" use="required">
+            <xs:simpleType>
+                <xs:restriction base="xs:string">
+                    <xs:pattern value="[a-zA-Z_\-]{0,64}" />
+                </xs:restriction>
+            </xs:simpleType>
+        </xs:attribute>
+
+        <xs:attribute name="title" type="xs:string"   use="required" />
+
+        <xs:attribute name="type" use="required" >
+            <xs:simpleType>
+                <xs:restriction base="xs:string">
+                    <xs:enumeration value="integer" />
+                    <xs:enumeration value="float" />
+                    <xs:enumeration value="date" />
+                    <xs:enumeration value="boolean" />
+
+                    <xs:enumeration value="string" />
+                    <xs:enumeration value="text" />
+                    <xs:enumeration value="html" />
+
+                    <!--  TODO (Slava) talk to Vitaly about file vs FILE_REF -->
+                    <xs:enumeration value="file" />
+
+                    <!--  TODO (Slava) remove this value from existing tools -->
+                    <xs:enumeration value="STRING" />
+
+                </xs:restriction>
+            </xs:simpleType>
+        </xs:attribute>
+
+        <xs:attribute name="visible" type="xs:boolean" />
+
+        <xs:attribute name="multiple" type="xs:boolean" />
+
+        <xs:attribute name="required" type="xs:boolean" />
+
+        <xs:attribute name="defaultValue" type="xs:string" />
+
+        <xs:attribute name="width" type="xs:positiveInteger" />
+
+        <xs:attribute name="height" type="xs:positiveInteger" />
+
+        <xs:attribute name="suggestion" type="xs:string" />
+
+        <xs:attribute name="disableSuggestionCache" type="xs:boolean" />
+    </xs:complexType>
+
+    <xs:complexType name="OutputType">
+        <xs:attribute name="script" type="xs:string" use="required" />
+
+
+        <xs:attribute name="type" use="required">
+            <xs:simpleType>
+                <xs:restriction>
+                    <xs:simpleType>
+                        <xs:list>
+                            <xs:simpleType>
+                                <xs:restriction base="xs:token">
+                                    <xs:enumeration value="HTML"/>
+                                    <xs:enumeration value="XSLX"/>
+                                    <xs:enumeration value="html"/>
+                                </xs:restriction>
+                            </xs:simpleType>
+                        </xs:list>
+                    </xs:simpleType>    
+                    <xs:minLength value="1"/>
+                </xs:restriction>
+            </xs:simpleType>
+        </xs:attribute>
+
+
+
+        <xs:attribute name="layout" type="xs:string" />
+
+        <!--  TODO (Slava) remove this attribute from existing tools -->
+        <xs:attribute name="engine" type="xs:string" />
+
+    </xs:complexType>
+
+</xs:schema>
