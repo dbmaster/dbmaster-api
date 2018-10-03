@@ -11,7 +11,7 @@
    </parent>
 
    <artifactId>dbmaster-api</artifactId>
-   <version>${project.parent.version}</version>
+   <version>${project.parent.version}-SNAPSHOT</version>
    <packaging>jar</packaging>
    <dependencies>
       <dependency>
