@@ -3,6 +3,7 @@ package com.branegy.dbmaster.sync.api;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -25,6 +26,8 @@ public abstract class SyncSession {
     private Namer namer;
     
     protected Logger logger;
+    
+    protected final Date lastSyncDate = new Date();
     
     public static enum SearchTarget { SOURCE, TARGET };
 

@@ -26,6 +26,7 @@ public class Contact extends BaseCustomEntity {
     public static final String NAME = "ContactName";
     public static final String PHONE = "ContactPhone";
     public static final String EMAIL = "ContactEmail";
+    public static final String LAST_SYNC = "LastSync";
 
     @ManyToOne(optional = false,fetch=FetchType.LAZY)
     @OnDelete(action = OnDeleteAction.CASCADE)

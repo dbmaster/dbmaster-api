@@ -3,10 +3,10 @@ package com.branegy.inventory.model;
 import static com.branegy.inventory.model.DatabaseUsage.QUERY_DB_USAGE_BY_APPLICATION;
 import static com.branegy.inventory.model.DatabaseUsage.QUERY_DB_USAGE_BY_DATABASE;
 import static com.branegy.inventory.model.DatabaseUsage.QUERY_DB_USAGE_BY_INSTALLATION;
+import static com.branegy.inventory.model.DatabaseUsage.QUERY_DB_USAGE_BY_PROJECT;
 import static com.branegy.inventory.model.DatabaseUsage.QUERY_DB_USAGE_COUNT_BY_APPLICATION;
 import static com.branegy.inventory.model.DatabaseUsage.QUERY_DB_USAGE_COUNT_BY_DATABASE;
 import static com.branegy.inventory.model.DatabaseUsage.QUERY_DB_USAGE_COUNT_BY_INSTALLATION;
-import static com.branegy.inventory.model.DatabaseUsage.QUERY_DB_USAGE_BY_PROJECT;
 
 import javax.persistence.Entity;
 import javax.persistence.JoinColumn;
@@ -61,6 +61,7 @@ public class DatabaseUsage extends BaseCustomEntity{
 
     public static final String USAGE_NOTES = "UsageNotes";
     public static final String USAGE_ROLES = "UsageRoles";
+    public static final String LAST_SYNC = "LastSync";
 
     @ManyToOne(optional=false)
     @OnDelete(action=OnDeleteAction.CASCADE)
