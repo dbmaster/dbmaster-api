@@ -60,7 +60,7 @@ public class Application extends BaseCustomEntity {
     public static final String QUERY_COUNT_APPLICATION_BY_DATABASE = "Application.findCountByDatabase";
 
     public static final String APPLICATION_NAME = "ApplicationName";
-    public static final String LAST_SYNC = "LastSync";
+    public static final String LAST_SYNC_DATE = "Last Sync Date";
 
 
     @ManyToOne(optional = false, fetch=FetchType.LAZY)

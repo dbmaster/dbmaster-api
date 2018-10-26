@@ -26,7 +26,7 @@ import com.branegy.persistence.custom.FetchAllObjectIdByProjectSql;
         "inner join inv_contact c on cl.contact_id=c.id where c.project_id=:projectId")
 public class ContactLink extends BaseCustomEntity{
     public static final String ROLE = "ContactRole";
-    public static final String LAST_SYNC = "LastSync";
+    public static final String LAST_SYNC_DATE = "Last Sync Date";
 
     @ManyToOne(fetch=FetchType.LAZY)
     @JoinColumn(name="application_id")

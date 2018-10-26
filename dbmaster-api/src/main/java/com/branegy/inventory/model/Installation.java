@@ -68,7 +68,7 @@ public class Installation extends BaseCustomEntity {
             "Installation.findCountByApplication";
 
     public static final String INSTANCE_NAME = "InstanceName";
-    public static final String LAST_SYNC = "LastSync";
+    public static final String LAST_SYNC_DATE = "Last Sync Date";
 
     @ManyToOne(optional=false)
     @JoinColumn(name="server_id")

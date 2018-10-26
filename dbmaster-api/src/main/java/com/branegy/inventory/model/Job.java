@@ -27,7 +27,7 @@ public class Job extends BaseCustomEntity {
     public static final String SERVER_NAME = "ServerName";
     public static final String JOB_TYPE = "JobType";
     public static final String DELETED = "Deleted";
-    public static final String LAST_SYNC = "LastSync";
+    public static final String LAST_SYNC_DATE = "Last Sync Date";
     
     @ManyToOne(optional = false,fetch=FetchType.LAZY)
     @OnDelete(action = OnDeleteAction.CASCADE)

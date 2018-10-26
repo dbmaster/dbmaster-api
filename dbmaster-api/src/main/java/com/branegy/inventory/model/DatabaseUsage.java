@@ -61,7 +61,7 @@ public class DatabaseUsage extends BaseCustomEntity{
 
     public static final String USAGE_NOTES = "UsageNotes";
     public static final String USAGE_ROLES = "UsageRoles";
-    public static final String LAST_SYNC = "LastSync";
+    public static final String LAST_SYNC_DATE = "Last Sync Date";
 
     @ManyToOne(optional=false)
     @OnDelete(action=OnDeleteAction.CASCADE)

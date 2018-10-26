@@ -41,7 +41,7 @@ public class Database extends BaseCustomEntity implements Comparable<Database> {
     public static final String LOG_SIZE = "LogSize";
     public static final String RECOVERY_MODE = "RecoveryMode";
     public static final String DELETED = "Deleted";
-    public static final String LAST_SYNC = "LastSync";
+    public static final String LAST_SYNC_DATE = "Last Sync Date";
 
     public static final String COMPATIBILITY_LEVEL = "CompatibilityLevel";
 
