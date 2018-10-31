@@ -123,4 +123,5 @@ public interface InventoryService {
     ApplicationLink findApplicationLinkById(long applicationLinkId);
     
     Slice<ApplicationLink> findApplicationLinkListByObject(BaseEntity obj, QueryRequest request);
+    List<ApplicationLink> findApplicationLinkListByObjectClass(Class<? extends BaseEntity> objClass);
 }
