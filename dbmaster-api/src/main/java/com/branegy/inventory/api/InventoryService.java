@@ -93,6 +93,7 @@ public interface InventoryService {
     Slice<Installation> findInstallationByServer(long serverId,int offset,int limit);
     List<Installation> searchInstallations(String filter);
     Slice<Installation> searchInstallations(String filter,int offset,int limit);
+    List<Installation> getInstallationList();
 
     Server createServer(Server server);
     void deleteServer(long serverId);

@@ -1,6 +1,7 @@
 package com.branegy.inventory.model;
 
 import static com.branegy.inventory.model.Installation.QUERY_INSTALLATION_BY_APPLICATION;
+import static com.branegy.inventory.model.Installation.QUERY_INSTALLATION_BY_PROJECT;
 import static com.branegy.inventory.model.Installation.QUERY_INSTALLATION_BY_SERVER;
 import static com.branegy.inventory.model.Installation.QUERY_INSTALLATION_COUNT_BY_APPLICATION;
 import static com.branegy.inventory.model.Installation.QUERY_INSTALLATION_COUNT_BY_SERVER;
@@ -38,7 +39,11 @@ import com.branegy.persistence.custom.FetchAllObjectIdByProjectSql;
                 + "where p.server.id=:server_id"),
         @NamedQuery(name = QUERY_INSTALLATION_COUNT_BY_SERVER,
             query = "select count(p) from Installation p "
-                + "where p.server.id=:server_id")
+                + "where p.server.id=:server_id"),
+        @NamedQuery(name = QUERY_INSTALLATION_BY_PROJECT, query = "from Installation i "
+                + "where i.application.project.id=:projectId"),
+        
+        
 //        @NamedQuery(name = QUERY_INSTALLATION_BY_DATABASE, query = "from Installation p "
 //                + "where p.id in (select du.installation.id from DatabaseUsage du "
 //                + "where du.database.id=:database_id)"),
@@ -66,6 +71,8 @@ public class Installation extends BaseCustomEntity {
             "Installation.findByApplication";
     public static final String QUERY_INSTALLATION_COUNT_BY_APPLICATION =
             "Installation.findCountByApplication";
+    public static final String QUERY_INSTALLATION_BY_PROJECT =
+            "Installation.findByProject";
 
     public static final String INSTANCE_NAME = "InstanceName";
     public static final String LAST_SYNC_DATE = "Last Sync Date";
