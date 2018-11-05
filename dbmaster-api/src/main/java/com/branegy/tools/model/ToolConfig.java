@@ -66,7 +66,7 @@ public class ToolConfig {
     }
 
     /**
-     * Class loader used to run tools
+     * @return a classloader used to run tools
      */
     public ClassLoader getToolClassLoader() {
         BundleWiring wiring = bundle.adapt(BundleWiring.class);

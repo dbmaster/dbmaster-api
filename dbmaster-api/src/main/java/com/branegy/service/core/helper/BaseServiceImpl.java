@@ -30,18 +30,17 @@ import com.branegy.service.core.exception.IllegalArgumentApiException;
 import com.branegy.service.core.exception.IllegalStateApiException;
 import com.branegy.service.core.exception.ValidationApiException;
 
+// TODO Move to implementation
 public abstract class BaseServiceImpl {
     private static final LazyFetchInitializer INITIALIZER = new LazyFetchInitializer();
 
     private BaseServiceImpl() {
     }
     
-    /**
+    /*
      * ConstraintViolationException throws only on flush. we can do it more heuristic
-     * @param clazz
-     * @param em
      */
-    private static void flushIfHasConstraint(Class<?> clazz, EntityManager em){
+    private static void flushIfHasConstraint(Class<?> clazz, EntityManager em) {
         do {
             Table table = clazz.getAnnotation(Table.class);
             if (table!=null && table.uniqueConstraints().length>0){
@@ -52,14 +51,9 @@ public abstract class BaseServiceImpl {
         } while (clazz!=BaseEntity.class);
     }
 
-    /**
+    /*
      * we don't need force version increment for BaseCustomEntity anymore. It's processed by
      * com.branegy.persistence.custom.CustomObjectInterceptor
-     *
-     * @param em
-     * @param entity
-     * @param clazz
-     * @return
      */
     public static <T extends BaseEntity> T mergeEntity(EntityManager em, T entity, Class<T> clazz) {
         if (entity == null) {
@@ -137,13 +131,6 @@ public abstract class BaseServiceImpl {
         }
     }
 
-    /**
-     * throws EntityNotFoundException,ConstraintViolationApiException,IllegalStateApiException
-     *
-     * @param em
-     * @param clazz
-     * @param id
-     */
     public static <T extends BaseEntity> void deleteEntity(EntityManager em, Class<T> clazz,long id) {
         T entity = null;
         try {
@@ -161,13 +148,6 @@ public abstract class BaseServiceImpl {
         }
     }
 
-    /**
-     * throws EntityNotFoundApiException
-     * @param em
-     * @param clazz
-     * @param id
-     * @return
-     */
     public static <T extends BaseEntity> T findEntityById(EntityManager em, Class<T> clazz, long id) {
         T entity = em.find(clazz, id);
         if (entity == null) {

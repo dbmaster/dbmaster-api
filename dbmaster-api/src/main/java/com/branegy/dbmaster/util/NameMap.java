@@ -5,8 +5,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 
 /**
- * Map<String,Object> contains keys. Key comparison performed ignoring case.
- * null key is not supported
+ * A special implementation of map that accepts non-null string for keys and ignores key case.
  */
 public class NameMap<V> extends LinkedHashMap<String, V> {
     private static final long serialVersionUID = -3026936733917800245L;
@@ -20,7 +19,7 @@ public class NameMap<V> extends LinkedHashMap<String, V> {
 
     @Override
     public boolean containsKey(Object key) {
-        if (key instanceof String){
+        if (key instanceof String) {
             return super.containsKey(((String)key).toLowerCase());
         } else {
             return false;
@@ -28,7 +27,7 @@ public class NameMap<V> extends LinkedHashMap<String, V> {
     }
 
     protected void ensureStringArgument(Object key) {
-        if (key==null){
+        if (key==null) {
             throw new NullPointerException();
         } else if (!(key instanceof String)){
             throw new IllegalArgumentException(key.getClass().getName());
@@ -53,10 +52,7 @@ public class NameMap<V> extends LinkedHashMap<String, V> {
         return super.remove(((String)key).toLowerCase());
     }
 
-    public List<V> toList(){
+    public List<V> toList() {
         return new ArrayList<V>(values());
     }
-
-
-
 }

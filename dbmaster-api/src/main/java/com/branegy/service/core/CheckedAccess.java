@@ -7,7 +7,7 @@ import java.lang.annotation.Target;
 
 import com.branegy.dbmaster.core.Permission.Role;
 
-/**
+/*
  * By default all properties look like AND operation.
  * 
  * @CheckedAccess - any authentication user

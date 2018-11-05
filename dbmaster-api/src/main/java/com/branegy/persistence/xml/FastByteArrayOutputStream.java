@@ -23,6 +23,7 @@ public class FastByteArrayOutputStream extends OutputStream {
 
     /**
      * Constructs a stream with the given initial size
+     * @param initSize initial capacity of the buffer
      */
     public FastByteArrayOutputStream(int initSize) {
         this.size = 0;
@@ -46,7 +47,7 @@ public class FastByteArrayOutputStream extends OutputStream {
     }
 
     /**
-     * Returns the byte array containing the written data. Note that this
+     * @return the byte array containing the written data. Note that this
      * array will almost always be larger than the amount of data actually
      * written.
      */
@@ -79,7 +80,7 @@ public class FastByteArrayOutputStream extends OutputStream {
     }
 
     /**
-     * Returns a ByteArrayInputStream for reading back the written data
+     * @return a ByteArrayInputStream for reading back the written data
      */
     public InputStream getInputStream() {
         return new FastByteArrayInputStream(buf, size);

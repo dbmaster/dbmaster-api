@@ -26,12 +26,6 @@ public interface ToolService {
 
     interface HtmlToolExecutor{
         long getExecutionId();
-        /**
-         * @return
-         * @throws ExecutionException
-         * @throws CancellationException
-         * @throws InterruptedException
-         */
         String execute() throws ExecutionException, InterruptedException;
     }
     HtmlToolExecutor toolExecutor(String toolId, Map<String,Object> parameters);

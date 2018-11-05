@@ -41,7 +41,7 @@ public abstract class SqlSearchHelper {
     protected boolean emptyResult;
     private boolean customEntity;
 
-    /** key in criteria <-> sql path
+    /* key in criteria <-> sql path
      * TODO (Vitaly) worked for text field only */
     protected Map<String, FieldInfo> standardFields = Collections.<String, FieldInfo>emptyMap();
 

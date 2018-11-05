@@ -21,13 +21,15 @@ import com.branegy.service.core.Slice;
 public interface InventoryService {
 
     SyncSession getDatabaseListDiff(Logger logger);
+
     // ---- applications
     Slice<Application> getApplicationList(QueryRequest request);
     
     /**
-     * Returns page where applicationName is located.
      * Used in url based initial load.
-     * @param limit - page limit
+     * @param applicationName name of the application specified in url
+     * @param limit page limit
+     * @return page where applicationName is located.
      */
     Slice<Application> getApplicationList(String applicationName, int limit);
     
@@ -52,7 +54,7 @@ public interface InventoryService {
     List<Database> getDatabaseList();
     
     /**
-     * @param request
+     * @param request holds search criteria, desired sort order, paging, and return attributes
      * @return Deleted=false only for default
      */
     Slice<Database> getDatabaseList(QueryRequest request);

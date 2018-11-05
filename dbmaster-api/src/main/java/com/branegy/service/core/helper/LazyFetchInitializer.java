@@ -27,7 +27,7 @@ import org.hibernate.Hibernate;
 import org.hibernate.proxy.HibernateProxy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-/**
+/*
  * Initialize lazy associations on managed entities
  *
  * syntax:
@@ -568,8 +568,4 @@ public class LazyFetchInitializer {
             return super.toString()+")";
         }
     }
-
-
-
-
 }

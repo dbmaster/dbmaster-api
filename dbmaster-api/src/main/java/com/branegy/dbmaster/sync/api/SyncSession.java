@@ -94,11 +94,11 @@ public abstract class SyncSession {
     }
     
     /**
-     * This method should search for similar objects for selected child items.
-     * @param pairId
-     * @param searchWithinDeleted
-     * @param minSimilarity
-     * @return
+     * This method identifies similar objects for selected child items.
+     * @param contextPair          a scope for search
+     * @param searchWithinDeleted  identifies if search will attempt to search within previously deleted objects
+     * @param minSimilarity        a float between 0 and 1 to filter out non-matching pairs
+     * @return a list of pairs that match level is above <code>minSimilarity</code>
      */
     public synchronized List<MatchPair> findSimilarSourceObjects(SyncPair contextPair,
             boolean searchWithinDeleted, float minSimilarity) {
@@ -135,7 +135,7 @@ public abstract class SyncSession {
         for (SyncPair child : sourcePair.getChildren()) {
             searchMatches(child, targetPair, minSimilarity, searchWithinDeleted);
         }
-        if (searchWithinDeleted){
+        if (searchWithinDeleted) {
             if (sourcePair.getChangeType() != ChangeType.DELETED){
                 return; // search within delete only
             }
@@ -219,7 +219,7 @@ public abstract class SyncSession {
      * @param message
      */
     public synchronized void logMessage(String level, String message) {
-        if ("error".equalsIgnoreCase(level)){
+        if ("error".equalsIgnoreCase(level)) {
             logger.error(message);
         }
     }
@@ -228,16 +228,8 @@ public abstract class SyncSession {
         return logger;
     }
 
-    /**
-     * merge source into target in place
-     * 
-     * @param source
-     * @param target
-     * @param pairs
-     */
     @SuppressWarnings("unchecked")
-    protected final <T> void applyChangesForLists(List<T> source, List<T> target,
-            SyncPair parentPair, String type){
+    protected final <T> void applyChangesForLists(List<T> source, List<T> target, SyncPair parentPair, String type) {
         Preconditions.checkNotNull(source,      "Parameter source can not be null");
         Preconditions.checkNotNull(target,      "Parameter target can not be null");
         Preconditions.checkNotNull(type,        "Parameter type can not be null");
@@ -245,17 +237,17 @@ public abstract class SyncSession {
         
         List<SyncPair> children = subListByType(parentPair, type);
         int addIndexShift = 0;
-        for (SyncPair p:children){
+        for (SyncPair p:children) {
             Preconditions.checkArgument(p.isOrdered(),"SyncPair should be ordered for "+p.toString());
-            if (!p.isSelected()){
-                if (p.getChangeType() == ChangeType.NEW){
+            if (!p.isSelected()) {
+                if (p.getChangeType() == ChangeType.NEW) {
                     addIndexShift++;
                 }
                 continue;
             }
             T sourceObj = (T) p.getSource();
             T targetObj = (T) p.getTarget();
-            switch (p.getChangeType()){
+            switch (p.getChangeType()) {
             case NEW:
                 if (indexOfByObject(source, namer, targetObj)!=-1){
                     throw new IllegalStateException("Object already exists "
