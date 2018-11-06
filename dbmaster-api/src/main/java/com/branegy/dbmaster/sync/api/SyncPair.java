@@ -11,7 +11,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import com.branegy.dbmaster.sync.api.SyncAttributePair.AttributeChangeType;
 
-//Not thread-safe!
+// Not thread-safe!
 public class SyncPair {
     private static final AtomicLong GLOBAL_ID = new AtomicLong();
     
@@ -37,10 +37,12 @@ public class SyncPair {
     private String sourceName;
     private String targetName;
     private boolean caseSensitive;
+
     /**
      * position in source list
      */
     private Integer sourceIndex;
+
     /**
      * position in target list
      */
@@ -53,18 +55,23 @@ public class SyncPair {
     
     // transient fields
     private final long id;
+
     private boolean selected;
+
     private boolean attributeChanges;
+
     private boolean childrenChanges;
 
     /**
      * ignore change for current SyncPair
      */
     private boolean ignorable;
+
     /**
      * ignore order change for current SyncPair
      */
     private boolean ignorableOrderChange;
+
     /**
      * ignore name change
      */
@@ -84,8 +91,8 @@ public class SyncPair {
     private Object originalTarget;
     
     public SyncPair(SyncPair parentPair, Object source, Object target) {
-        if (source==null && target==null){
-            throw new IllegalArgumentException("Both parameters can not be null for "+parentPair);
+        if (source==null && target==null) {
+            throw new IllegalArgumentException("Both parameters can not be null for " + parentPair);
         }
         this.source = source;
         this.target = target;
@@ -96,9 +103,6 @@ public class SyncPair {
         this.selected = true;
     }
     
-    /**
-     * special constructor for loaded SyncPair from db
-     */
     public SyncPair(SyncPair parentPair) {
         this.source = null;
         this.target = null;
@@ -510,7 +514,7 @@ public class SyncPair {
      */
     // TODO add new api
     @Deprecated
-    public void refreshFlags(){
+    public void refreshFlags() {
         for (SyncPair childPair :  getChildren()) {
             if (childPair.getChangeType()!=EQUALS || childPair.isOrderChanged()){
                 childrenChanges = true;
@@ -523,7 +527,5 @@ public class SyncPair {
                 break;
             }
         }
-    }
-    
-    
+    }    
 }

@@ -27,11 +27,6 @@ import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.security.AnyTypePermission;
 import com.thoughtworks.xstream.security.NoTypePermission;
 
-/**
- * configurations:
- * key=<method-name>.<description>
- * values=<param1>,<param2>
- */
 public class XmlBlobType implements UserType,ParameterizedType {
     private static final Logger logger = LoggerFactory.getLogger(XmlBlobType.class);
     private static final int[] TYPES = new int[] { Types.BLOB };
@@ -49,6 +44,7 @@ public class XmlBlobType implements UserType,ParameterizedType {
     }
 
     @Override
+    // TODO can be static and moved to implentation modules outside API
     public Object deepCopy(Object param){
         if (param==null){
             return null;
@@ -135,7 +131,7 @@ public class XmlBlobType implements UserType,ParameterizedType {
         }
     }
 
-    private void configure(String key,String value){
+    private void configure(String key, String value){
         String methodName = key.substring(0,key.indexOf('.'));
         String[] values = value.isEmpty()?EMPTY_STRING_ARRAY:value.split(",");
         Method method = findMethod(methodName, values.length);

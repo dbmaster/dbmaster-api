@@ -62,6 +62,7 @@ public class Database extends BaseCustomEntity implements Comparable<Database> {
     }
 
     /**
+     * @return connection name the database belong to
      * @deprecated use getConnectionName instead
      */
     @Deprecated
@@ -70,6 +71,7 @@ public class Database extends BaseCustomEntity implements Comparable<Database> {
     }
     
     /**
+     * @param serverName connection name the database belong to
      * @deprecated use setConnectionName instead
      */
     @Deprecated
@@ -79,6 +81,7 @@ public class Database extends BaseCustomEntity implements Comparable<Database> {
 
     /**
      * @deprecated use getConnectionName instead
+     * @return connection name this database belong to
      */
     @Deprecated
     public String getServerName() {

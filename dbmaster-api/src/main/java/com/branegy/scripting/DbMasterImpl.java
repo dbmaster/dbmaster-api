@@ -20,6 +20,7 @@ import com.google.inject.Injector;
 
 import com.branegy.service.core.exception.IllegalArgumentApiException;
 
+// TODO Move to implementation
 public class DbMasterImpl implements DbMaster {
 
     private final Injector injector;

@@ -19,9 +19,11 @@ import org.apache.commons.io.input.ClassLoaderObjectInputStream;
 public class FastDeepCopy {
 
     /**
-     * Returns a copy of the object, or null if the object cannot be serialized.
-     * @throws IOException
-     * @throws ClassNotFoundException
+     * @return a copy of the object, or null if the object cannot be serialized.
+     * @param orig object to be copied
+     * @param <T> type should be serializable
+     * @throws IOException Any exception thrown by the underlying operations
+     * @throws ClassNotFoundException Any exception thrown by the underlying operations
      */
     @SuppressWarnings("unchecked")
     public static <T> T deepCopy(T orig) throws IOException, ClassNotFoundException {
@@ -45,9 +47,12 @@ public class FastDeepCopy {
     }
     
     /**
-     * Returns a copy of the object, or null if the object cannot be serialized.
-     * @throws IOException
-     * @throws ClassNotFoundException
+     * @return a copy of the object, or null if the object cannot be serialized.
+     * @param orig object to be copied
+     * @param cl  class loader for the object
+     * @param <T> type should be serializable
+     * @throws IOException Any exception thrown by the underlying operations
+     * @throws ClassNotFoundException Any exception thrown by the underlying operations
      */
     @SuppressWarnings("unchecked")
     public static <T> T deepCopy(T orig, ClassLoader cl) throws IOException, ClassNotFoundException {

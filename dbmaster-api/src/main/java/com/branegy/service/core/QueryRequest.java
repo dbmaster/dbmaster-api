@@ -90,22 +90,21 @@ public class QueryRequest {
         this.offset = offset;
     }
 
-    public boolean hasLimit(){
+    public boolean hasLimit() {
         return limit>0;
     }
 
     public int getLimit() {
-        if (limit == 0){
+        if (limit == 0) {
             throw new IllegalStateException("Limit is not set, call getLimit() if hasLimit() is true");
         }
         return limit;
     }
 
     public void setLimit(int limit) {
-        if (limit<=0){
+        if (limit<=0) {
             throw new IllegalArgumentException("Limit must be positive number, or null for unlimit");
         }
         this.limit = limit;
     }
-
 }
