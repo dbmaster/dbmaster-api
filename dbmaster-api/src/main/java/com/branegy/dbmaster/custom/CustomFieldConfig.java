@@ -132,6 +132,9 @@ public class CustomFieldConfig extends BaseEntity {
 
     @Column(name="regexp",length=255)
     private String regexp;
+    
+    @Column(name="format",length=128)
+    private String format;
 
     @ElementCollection(fetch=FetchType.EAGER)
     @Column(name="textValues", length = 255)
@@ -325,6 +328,14 @@ public class CustomFieldConfig extends BaseEntity {
 
     public void setCustomObjectType(CustomObjectTypeEntity customObjectType) {
         this.customObjectType = customObjectType;
+    }
+
+    public final String getFormat() {
+        return format;
+    }
+
+    public final void setFormat(String format) {
+        this.format = format;
     }
 
     // TODO permission (read/write)
