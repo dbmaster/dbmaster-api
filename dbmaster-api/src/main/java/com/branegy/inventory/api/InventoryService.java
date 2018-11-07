@@ -118,6 +118,7 @@ public interface InventoryService {
     Slice<Job> getJobList(String jobName, String jobType, String serverName, int pageSize);
     @Deprecated // NOT IMPLEMENTED
     List<Server> getJobList(String jobName, String jobType, String serverName);
+    String getJobExtraInfo(Job job);
     
     // application link
     ApplicationLink createApplicationLink(ApplicationLink server);
@@ -127,4 +128,6 @@ public interface InventoryService {
     
     Slice<ApplicationLink> findApplicationLinkListByObject(BaseEntity obj, QueryRequest request);
     List<ApplicationLink> findApplicationLinkListByObjectClass(Class<? extends BaseEntity> objClass);
+
+    
 }
