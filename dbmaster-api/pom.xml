@@ -140,6 +140,19 @@
             </resource>
         </resources>
         <plugins>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+                <version>1.8</version>
+                <executions>
+                    <execution>
+                        <id>parse-version</id>
+                        <goals>
+                            <goal>parse-version</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
             <!-- extra OSGi manifest headers -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -164,8 +177,8 @@
                                     <Bundle-Description>${project.description}</Bundle-Description>
                                     <Bundle-Name>${project.name}</Bundle-Name>
                                     <Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
-                                    <Bundle-Version>${project.version}</Bundle-Version>
-                                    <Export-Package>io.dbmaster.api;version="${project.version}"</Export-Package>
+                                    <Bundle-Version>${parsedVersion.majorVersion}.${parsedVersion.minorVersion}.${parsedVersion.incrementalVersion}</Bundle-Version>
+                                    <Export-Package>io.dbmaster.api;version="${parsedVersion.majorVersion}.${parsedVersion.minorVersion}.${parsedVersion.incrementalVersion}"</Export-Package>
                                 </manifestEntries>
                             </archive>
                         </configuration>
