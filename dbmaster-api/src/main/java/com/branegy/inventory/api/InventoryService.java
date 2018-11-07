@@ -47,6 +47,7 @@ public interface InventoryService {
     Database findDatabaseByConnectionNameDbName(String connectionName, String dbName);
     @Deprecated
     Database findDatabaseByServerNameDbName(String serverName, String dbName);
+    String getDatabaseExtraInfo(Database database);
     
     /**
      * @return list of all databases in the current project excluding deleted ones
@@ -102,6 +103,7 @@ public interface InventoryService {
     Server findServerById(long serverId);
     Server findServerByName(String serverName);
     Server saveServer(Server server);
+    String getServerExtraInfo(Server server);
 
     Slice<Server> getServerList(QueryRequest request);
     Slice<Server> getServerList(String name, int pageSize);
@@ -128,6 +130,4 @@ public interface InventoryService {
     
     Slice<ApplicationLink> findApplicationLinkListByObject(BaseEntity obj, QueryRequest request);
     List<ApplicationLink> findApplicationLinkListByObjectClass(Class<? extends BaseEntity> objClass);
-
-    
 }
