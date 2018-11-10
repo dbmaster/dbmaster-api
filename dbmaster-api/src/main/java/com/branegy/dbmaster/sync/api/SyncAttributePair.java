@@ -11,6 +11,7 @@ import java.util.concurrent.atomic.AtomicLong;
 // Not thread-safe!
 public class SyncAttributePair {
     private static final AtomicLong GLOBAL_ID = new AtomicLong();
+
     static final SyncAttributeComparator<Object> DEFAULT_COMPARATOR = new SyncAttributeComparator<Object>() {
         @Override
         public SyncAttributePair.AttributeChangeType compare(Object sourceValue, Object targetValue) {
@@ -56,8 +57,7 @@ public class SyncAttributePair {
         this(attributeName, sourceValue, targetValue, DEFAULT_COMPARATOR);
     }
     
-    public <T> SyncAttributePair(String attributeName, T sourceValue, T targetValue,
-            SyncAttributeComparator<T> comparator) {
+    public <T> SyncAttributePair(String attributeName, T sourceValue, T targetValue, SyncAttributeComparator<T> comparator) {
         this.attributeName = attributeName;
         this.sourceValue = sourceValue;
         this.targetValue = targetValue;
