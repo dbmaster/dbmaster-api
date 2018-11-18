@@ -104,4 +104,9 @@ public abstract class BaseCustomEntity extends BaseEntity {
     protected String getDiscriminatorFromDatabase(){
         return custom.getClazz();
     }
+    
+    @Override
+    public String toString() {
+        return super.toString()+ (custom!=null?" "+custom:"");
+    }
 }
