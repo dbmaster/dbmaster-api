@@ -48,6 +48,7 @@ public interface InventoryService {
     @Deprecated
     Database findDatabaseByServerNameDbName(String serverName, String dbName);
     String getDatabaseExtraInfo(Database database);
+    String getDatabaseHistoryInfo(Database database);
     
     /**
      * @return list of all databases in the current project excluding deleted ones
