@@ -122,6 +122,7 @@ public interface InventoryService {
     @Deprecated // NOT IMPLEMENTED
     List<Server> getJobList(String jobName, String jobType, String serverName);
     String getJobExtraInfo(Job job);
+    String getJobHistoryInfo(Job job);
     
     // application link
     ApplicationLink createApplicationLink(ApplicationLink server);
