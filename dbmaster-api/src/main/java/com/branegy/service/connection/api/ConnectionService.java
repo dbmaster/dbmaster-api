@@ -43,4 +43,5 @@ public interface ConnectionService {
     Slice<DatabaseConnection> getConnectionSlice(QueryRequest params, String name);
 
     String getConnectionExtraInfo(DatabaseConnection connection);
+    String getConnectionHistoryInfo(DatabaseConnection connection);
 }
