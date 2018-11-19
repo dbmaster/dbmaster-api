@@ -33,6 +33,16 @@ public class ScriptFactoryManager implements com.branegy.scripting.api.ScriptFac
             throw new IllegalArgumentException(e);
         }
     }
+    
+    @Override
+    public ScriptConfig scriptFromFile(String... scriptFileNames) {
+        for (String file:scriptFileNames) {
+            if (new File(DataDirHelper.getDataDir()+"scripts/"+file).exists()) {
+                return scriptFromFile(file);
+            }
+        }
+        throw new IllegalArgumentException("Files not found");
+    }
 
     private ScriptEngine getEngine(String engineExtension, ClassLoader contextClassLoader) {
         ClassLoader prevContextClassLoader = Thread.currentThread().getContextClassLoader();
@@ -61,6 +71,16 @@ public class ScriptFactoryManager implements com.branegy.scripting.api.ScriptFac
         } catch (MalformedURLException e) {
             throw new IllegalArgumentException(e);
         }
+    }
+    
+    @Override
+    public ScriptConfig scriptFromFile(File... files) {
+        for (File file:files) {
+            if (file.exists()) {
+                return scriptFromFile(file);
+            }
+        }
+        throw new IllegalArgumentException("Files not found");
     }
 
     @Override

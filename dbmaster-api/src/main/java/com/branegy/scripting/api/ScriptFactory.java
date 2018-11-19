@@ -7,6 +7,8 @@ public interface ScriptFactory {
     
     ScriptConfig scriptFromFile(String file);
     ScriptConfig scriptFromFile(File file);
+    ScriptConfig scriptFromFile(String... files);
+    ScriptConfig scriptFromFile(File... files);
 
     ScriptConfig scriptFromUrl(URL url);
     ScriptConfig scriptFromUrl(ClassLoader cl, URL url);
