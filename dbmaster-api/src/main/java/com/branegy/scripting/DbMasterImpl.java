@@ -1,7 +1,5 @@
 package com.branegy.scripting;
 
-import io.dbmaster.api.services.PublicService;
-
 import java.sql.Connection;
 import java.sql.SQLFeatureNotSupportedException;
 import java.sql.Statement;
@@ -20,17 +18,19 @@ import com.google.inject.Injector;
 
 import com.branegy.service.core.exception.IllegalArgumentApiException;
 
+import io.dbmaster.api.services.PublicService;
+
 // TODO Move to implementation
 public class DbMasterImpl implements DbMaster {
 
     private final Injector injector;
 
-    private final Logger logger;
+    protected final Logger logger;
     
     private final Set<Object> resources = Collections.synchronizedSet(
             Collections.newSetFromMap(new IdentityHashMap<Object,Boolean>()));
 
-    private DbMasterImpl(Injector injector, Logger logger) {
+    protected DbMasterImpl(Injector injector, Logger logger) {
         this.injector = injector;
         this.logger = logger;
     }
