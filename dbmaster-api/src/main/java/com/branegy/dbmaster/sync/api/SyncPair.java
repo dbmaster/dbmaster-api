@@ -31,6 +31,31 @@ public class SyncPair {
         /** object is equals. source and target*/
         EQUALS
     }
+    
+    public static enum ErrorType{
+        NONE, ERROR, CHILD_ERROR;
+    }
+    
+    public static class SyncError{
+        public static final SyncError NO_ERROR = new SyncError(ErrorType.NONE, null);
+        
+        private final ErrorType errorStatus;
+        private final SyncPair syncPair;
+        
+        SyncError(ErrorType errorStatus, SyncPair syncPair) {
+            this.errorStatus = errorStatus;
+            this.syncPair = syncPair;
+        }
+
+        public ErrorType getErrorStatus() {
+            return errorStatus;
+        }
+
+        public SyncPair getSyncPair() {
+            return syncPair;
+        }
+    }
+    
 
     private ChangeType changeType;
     private String objectType;
@@ -84,6 +109,8 @@ public class SyncPair {
     private boolean ignorableOrderChanges;
     private boolean ignorableAttributesChanges;
     private boolean ignorableChildrenChanges;
+    
+    private String error;
     
     private Object source;
     private Object target;
@@ -336,7 +363,6 @@ public class SyncPair {
             objectType = namer.getType(source);
             targetName = namer.getName(target);
             sourceName = namer.getName(source);
-            //changeType = !ignorableNameChange && !sourceName.equalsIgnoreCase(targetName)?CHANGED:EQUALS;
             changeType = !ignorableNameChange && !equalsString(caseSensitive, sourceName, targetName)
                     ?CHANGED
                     :EQUALS;
@@ -344,7 +370,11 @@ public class SyncPair {
             assert namer.getType(source).equals(namer.getType(target));
         }
         Comparer cmp = session.getComparer();
-        cmp.syncPair(this, session);
+        cmp.syncPair(this, session); // TODO add try/catch with error ?
+        
+        if (hasError()) {
+            return;
+        }
         
         // compare child pairs
         for (SyncPair childPair : getChildren()) {
@@ -508,6 +538,44 @@ public class SyncPair {
     public final void setCaseSensitive(boolean caseSensitive) {
         this.caseSensitive = caseSensitive;
     }
+
+    public String getError() {
+        return error;
+    }
+
+    public void setError(String error) {
+        this.error = error;
+    }
+
+    private boolean hasError() {
+        return error!=null;
+    }
+    
+    private SyncPair findErrorSyncPair() {
+         for (SyncPair pair:getChildren()) {
+             if (pair.hasError()) {
+                 return pair;
+             }
+             SyncPair result = pair.findErrorSyncPair();
+             if (result != null) {
+                 return result;
+             }
+         }
+         return null;
+     }
+    
+    public SyncError getErrorStatus() {
+        if (hasError()) {
+            return new SyncError(ErrorType.ERROR, this);
+        }
+        SyncPair pair = findErrorSyncPair();
+        if (pair!=null) {
+            return new SyncError(ErrorType.CHILD_ERROR, pair);
+        } else {
+            return SyncError.NO_ERROR;
+        }
+    }
+    
 
     /**
      * workaround for new api. do not use it!
