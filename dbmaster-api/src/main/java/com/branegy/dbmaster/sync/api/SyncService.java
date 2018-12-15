@@ -22,4 +22,5 @@ public interface SyncService {
     String generateSyncSessionPreviewHtml(String templateName, SyncSession syncSession,
             boolean showChangesOnly);
 
+    List<SyncPair> getSyncPairsByName(String... typeName);
 }
