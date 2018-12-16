@@ -21,7 +21,6 @@ import com.branegy.dbmaster.model.RevEngineeringOptions;
 import com.branegy.dbmaster.model.Table;
 import com.branegy.dbmaster.model.View;
 import com.branegy.dbmaster.util.NameMap;
-import com.branegy.inventory.model.Job;
 import com.branegy.service.connection.model.DatabaseConnection;
 import com.branegy.service.core.exception.ApiException;
 
@@ -293,58 +292,7 @@ public abstract class JDBCDialect implements Dialect {
         }
     }
 
-    public List<Job> getJobs() {
-        Connection conn = null;
-        String sql =
-        " select job.job_id, job.name, job.enabled, job.description,"
-        +      " c.name as category_name, suser_sname(job.owner_sid) as owner "+
-        " from msdb.dbo.sysjobs job " +
-        " left join msdb.dbo.syscategories c on job.category_id=c.category_id";
-        try {
-            conn = connector.getJdbcConnection(null);
-            java.sql.Statement st;
-            List<Job> result = new ArrayList<Job>();
-            ResultSet rs = null;
-            try{
-                st = conn.createStatement();
-                rs = st.executeQuery(sql);
-                while (rs.next()) {
-                    Job job = new Job();
-                    job.setJobType("SqlServerJob");
-                    job.setJobName(rs.getString("name"));
-
-                    job.setCustomData("JobId", rs.getString("job_id"));
-                    job.setCustomData("Enabled", rs.getBoolean("enabled"));
-                    job.setCustomData("Source", "SqlServer");
-                    job.setCustomData("Description", rs.getString("description"));
-                    job.setCustomData("Category", rs.getString("category_name"));
-                    job.setCustomData("Owner", rs.getString("owner"));
-                    job.setCustomData("ExtraInfo", "TODO");
-                    
-                    result.add(job);
-                }
-            } finally{
-                if (rs!=null){
-                    rs.close();
-                }
-            }
-            return result;
-        } catch (ApiException e) {
-            throw e;
-        } catch (Exception e) {
-            throw new ConnectionApiException("Cannot load jobs:"+e.getLocalizedMessage(), e);
-        } finally {
-            try {
-                if (conn != null) {
-                    conn.close();
-                }
-            } catch (Exception e) {
-                logger.error("Cannot load jobs", e);
-            }
-        }
-    }
-
-    public Model getModel(String name, RevEngineeringOptions options) {
+     public Model getModel(String name, RevEngineeringOptions options) {
         Model model = new Model();
         model.setConnection(connector.getConnectionInfo());
         model.setName(name);
