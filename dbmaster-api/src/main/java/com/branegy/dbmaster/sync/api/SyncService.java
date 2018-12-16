@@ -19,8 +19,9 @@ public interface SyncService {
 
     String generateSyncSessionPreviewHtml(SyncSession syncSession, boolean showChangesOnly);
     
-    String generateSyncSessionPreviewHtml(String templateName, SyncSession syncSession,
-            boolean showChangesOnly);
+    String generateSyncSessionPreviewHtml(String templateName, SyncSession syncSession, boolean showChangesOnly);
 
     List<SyncPair> getSyncPairsByName(String... typeName);
+   
+    SummaryGenerator getSummaryGenerator(String templateName);
 }

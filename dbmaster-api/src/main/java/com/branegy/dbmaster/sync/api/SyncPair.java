@@ -7,6 +7,7 @@ import static com.branegy.dbmaster.sync.api.SyncPair.ChangeType.NEW;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Date;
 import java.util.concurrent.atomic.AtomicLong;
 
 import com.branegy.dbmaster.sync.api.SyncAttributePair.AttributeChangeType;
@@ -25,18 +26,18 @@ public class SyncPair {
         /** object is copied. source and target*/
         COPIED,
         
-        
         /** object is deleted. source only*/
         DELETED,
+
         /** object is equals. source and target*/
         EQUALS
     }
     
-    public static enum ErrorType{
+    public static enum ErrorType {
         NONE, ERROR, CHILD_ERROR;
     }
     
-    public static class SyncError{
+    public static class SyncError {
         public static final SyncError NO_ERROR = new SyncError(ErrorType.NONE, null);
         
         private final ErrorType errorStatus;
@@ -116,6 +117,8 @@ public class SyncPair {
     private Object target;
     private Object originalSource;
     private Object originalTarget;
+
+    private Date syncDate;
     
     public SyncPair(SyncPair parentPair, Object source, Object target) {
         if (source==null && target==null) {
@@ -140,6 +143,14 @@ public class SyncPair {
         this.selected = true;
     }
     
+    public Date getSyncDate() { 
+        return syncDate;
+    }
+
+    public void setSyncDate(Date syncDate) { 
+        this.syncDate = syncDate;
+    }
+
     public List<SyncAttributePair> getAttributes() {
         if (attributes==null) {
             attributes = new ArrayList<SyncAttributePair>();
@@ -174,7 +185,7 @@ public class SyncPair {
      * @return true if reordered<br>
      *         false otherwise (include insert with index)
      */
-    public boolean isOrderChanged(){
+    public boolean isOrderChanged() {
         return sourceIndex!=null && targetIndex!=null && !sourceIndex.equals(targetIndex);
     }
     
@@ -450,6 +461,7 @@ public class SyncPair {
         return id;
     }
     
+    // TODO: Rename to has children
     public boolean isChildren() {
         return childPairs != null && !childPairs.isEmpty();
     }
