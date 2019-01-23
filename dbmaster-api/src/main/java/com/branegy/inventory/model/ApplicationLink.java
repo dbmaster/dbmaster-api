@@ -31,6 +31,11 @@ public class ApplicationLink extends BaseCustomEntity{
     @OnDelete(action=OnDeleteAction.CASCADE)
     Job job;
     
+    @ManyToOne(fetch=FetchType.LAZY)
+    @JoinColumn(name="security_object_id")
+    @OnDelete(action=OnDeleteAction.CASCADE)
+    SecurityObject securityObject;
+    
     // TODO db user
 
     @ManyToOne(optional=false)
@@ -52,5 +57,13 @@ public class ApplicationLink extends BaseCustomEntity{
 
     public final void setJob(Job job) {
         this.job = job;
+    }
+
+    public final SecurityObject getSecurityObject() {
+        return securityObject;
+    }
+
+    public final void setSecurityObject(SecurityObject securityObject) {
+        this.securityObject = securityObject;
     }
 }

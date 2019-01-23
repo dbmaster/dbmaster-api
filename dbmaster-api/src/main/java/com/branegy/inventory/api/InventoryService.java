@@ -11,6 +11,7 @@ import com.branegy.inventory.model.Database;
 import com.branegy.inventory.model.DatabaseUsage;
 import com.branegy.inventory.model.Installation;
 import com.branegy.inventory.model.Job;
+import com.branegy.inventory.model.SecurityObject;
 import com.branegy.inventory.model.Server;
 import com.branegy.persistence.BaseEntity;
 import com.branegy.service.core.QueryRequest;
@@ -132,4 +133,19 @@ public interface InventoryService {
     
     Slice<ApplicationLink> findApplicationLinkListByObject(BaseEntity obj, QueryRequest request);
     List<ApplicationLink> findApplicationLinkListByObjectClass(Class<? extends BaseEntity> objClass);
+    
+    
+    //SecurityObjectExtraAction
+    
+    String getSecurityObjectExtraInfo(SecurityObject securityObject);
+    String getSecurityObjectHistoryInfo(SecurityObject securityObject);
+    
+    SecurityObject findSecurityObjectById(long securityObjectId);
+    SecurityObject findSecurityObjectByKey(String source, String serverName, String id);
+    SecurityObject createSecurityObject(SecurityObject so);
+    SecurityObject saveSecurityObject(SecurityObject so);
+    void deleteSecurityObject(long id);
+
+    Slice<SecurityObject> getSecurityObjectList(String source, String serverName, String id, int limit);
+    Slice<SecurityObject> getSecurityObjectList(QueryRequest request);
 }
