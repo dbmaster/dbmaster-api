@@ -56,7 +56,7 @@ public class SecurityObject extends BaseCustomEntity {
         setCustomData(SERVER_NAME, serverName);
     }
     
-    public String getSourceName() {
+    public String getSource() {
         return getCustomData(SOURCE);
     }
     
