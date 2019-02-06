@@ -57,7 +57,7 @@ public abstract class JDBCDialect implements Dialect {
 
     protected NameMap<Table> getTables(RevEngineeringOptions options) {
         try {
-            Connection conn = getProvider().getJdbcConnection(options.database);
+            Connection conn = getProvider().getJdbcConnection(options.getDatabase());
 
             NameMap<Table> tables = new NameMap<Table>(200);
 
@@ -65,8 +65,8 @@ public abstract class JDBCDialect implements Dialect {
 
             boolean system = false;
 
-            ResultSet tablesRs = metaData.getTables(catalog? fixFilter(options.database): null,
-                    catalog? null: fixFilter(options.database),
+            ResultSet tablesRs = metaData.getTables(catalog? fixFilter(options.getDatabase()): null,
+                    catalog? null: fixFilter(options.getDatabase()),
                     fixFilter(options.includeTables), null);
 
             while (tablesRs.next()) {
@@ -105,8 +105,8 @@ public abstract class JDBCDialect implements Dialect {
             try {
 
                 String tableName = table.getName();
-                columnsRS = metaData.getColumns(catalog?options.database:null,
-                        catalog?null:options.database,
+                columnsRS = metaData.getColumns(catalog?options.getDatabase():null,
+                        catalog?null:options.getDatabase(),
                         tableName, null);
 
                 while (columnsRS.next()) {
@@ -142,7 +142,7 @@ public abstract class JDBCDialect implements Dialect {
             }
         }
 
-        setTableColumnComments(conn, options.database, tables);
+        setTableColumnComments(conn, options.getDatabase(), tables);
     }
 
     protected void populateViewColumns(Connection conn, RevEngineeringOptions options,
@@ -154,7 +154,7 @@ public abstract class JDBCDialect implements Dialect {
             try {
 
                 String viewName = view.getSimpleName();
-                columnsRS = metaData.getColumns(options.database, view.getSchema(), viewName, null);
+                columnsRS = metaData.getColumns(options.getDatabase(), view.getSchema(), viewName, null);
 
                 while (columnsRS.next()) {
 
@@ -189,7 +189,7 @@ public abstract class JDBCDialect implements Dialect {
             }
         }
 
-        setViewColumnComments(conn, options.database, views);
+        setViewColumnComments(conn, options.getDatabase(), views);
     }
 
 
