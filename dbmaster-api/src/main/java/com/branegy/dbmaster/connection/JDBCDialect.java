@@ -241,7 +241,7 @@ public abstract class JDBCDialect implements Dialect {
         StringBuilder sb=new StringBuilder();
         for (Filter filter:filters) {
             if (sb.length()!=0) {
-                sb.append(" and ");
+                sb.append(" or ");
             }
             String pattern = filterToSqlLike(filter.getName());
             String[] patternArray = pattern.split("\\.",2);
