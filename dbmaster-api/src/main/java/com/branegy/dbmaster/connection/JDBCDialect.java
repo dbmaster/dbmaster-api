@@ -18,9 +18,11 @@ import com.branegy.dbmaster.model.Function;
 import com.branegy.dbmaster.model.Model;
 import com.branegy.dbmaster.model.Procedure;
 import com.branegy.dbmaster.model.RevEngineeringOptions;
+import com.branegy.dbmaster.model.RevEngineeringOptions.Filter;
 import com.branegy.dbmaster.model.Table;
 import com.branegy.dbmaster.model.View;
 import com.branegy.dbmaster.util.NameMap;
+import com.branegy.persistence.custom.BaseCustomEntity;
 import com.branegy.service.connection.model.DatabaseConnection;
 import com.branegy.service.core.exception.ApiException;
 
@@ -57,20 +59,24 @@ public abstract class JDBCDialect implements Dialect {
 
     protected NameMap<Table> getTables(RevEngineeringOptions options) {
         try {
+            String TABLE_TYPE = getObjectTypeByClass(Table.class);
+            
             Connection conn = getProvider().getJdbcConnection(options.getDatabase());
-
             NameMap<Table> tables = new NameMap<Table>(200);
-
             DatabaseMetaData metaData = conn.getMetaData();
 
             boolean system = false;
-
-            ResultSet tablesRs = metaData.getTables(catalog? fixFilter(options.getDatabase()): null,
-                    catalog? null: fixFilter(options.getDatabase()),
-                    fixFilter(options.includeTables), null);
+            ResultSet tablesRs = metaData.getTables(
+                    catalog? filterToSqlLike(options.getDatabase()): null,
+                    catalog? null: filterToSqlLike(options.getDatabase()),
+                    null,
+                    null);
 
             while (tablesRs.next()) {
-                String tableName = tablesRs.getString("TABLE_NAME");
+                String tableName = tablesRs.getString("TABLE_NAME"); // TODO: check schema name?
+                if (!options.accept(TABLE_TYPE, tableName)) {
+                    continue;
+                }
                 String type = tablesRs.getString("TABLE_TYPE");
                 if (type.equals("TABLE") || system) {
                     Table tableInfo = new Table();
@@ -192,54 +198,64 @@ public abstract class JDBCDialect implements Dialect {
         setViewColumnComments(conn, options.getDatabase(), views);
     }
 
-
-
-    /**
-     * @deprecated use getFilter instead
-     */
-    @Deprecated
-    protected String fixFilter(String filter) {
-        return filter == null || filter.trim().length() == 0 ? null : filter.replace('*', '%');
+    protected String filterToSqlLike(String filter) {
+        return filter == null || filter.trim().length() == 0 
+                ? null
+                : filter.replace('*', '%')
+                        .replace('?', '_');
     }
-
-    protected String getFilter(String schemaColumn,String objectColumn,
-            String includeFilter,String excludeFilter) {
-        String inFilter = getFilter(schemaColumn,objectColumn,includeFilter);
-        String exFilter = getFilter(schemaColumn,objectColumn,excludeFilter);
-        if (inFilter!=null && exFilter!=null) {
-            return inFilter +" and not ("+exFilter+")";
-        } else if (inFilter!=null) {
-            return inFilter;
-        } else if (exFilter!=null) {
-            return "not ("+exFilter+")";
+    
+    protected String getObjectTypeByClass(Class<? extends BaseCustomEntity> objecttClazz) {
+        return BaseCustomEntity.getDiscriminator(objecttClazz);
+    }
+    
+    protected String getSqlFilter(String schemaColumn,String objectColumn,
+            String objectType, RevEngineeringOptions options) {
+        if (options.isExcludedObjectType(objectType)) {
+            return "1=0"; // = FALSE : empty result
         } else {
-            return null;
+            List<Filter> excludedObjects = options.getExcludedObjects(objectType);
+            String filter = "(";
+            if (!options.isIncludeByDefault(objectType)) {
+                List<Filter> includedObjects = options.getIncludedObjects(objectType);
+                filter += '('
+                            +generateSqlFilter(schemaColumn, objectColumn, includedObjects, true)
+                          +") and ";
+            }
+            return filter+"not("
+                        +generateSqlFilter(schemaColumn, objectColumn, excludedObjects, false)
+                   +"))";
         }
     }
-
-    private String getFilter(String schemaColumn,String objectColumn, String filter) {
-        if (filter == null || filter.trim().length() == 0) {
-            return null;
+    
+    protected String getSqlFilter(String schemaColumn,String objectColumn,
+            Class<? extends BaseCustomEntity> objecttClazz, RevEngineeringOptions options) {
+        return getSqlFilter(schemaColumn, objectColumn, getObjectTypeByClass(objecttClazz),options);
+    }
+    
+    private String generateSqlFilter(String schemaColumn,String objectColumn, List<Filter> filters, 
+            boolean defReturn) {
+        if (filters.isEmpty()) {
+            return defReturn?"1=1":"1=0";
         }
-        StringBuffer sb=new StringBuffer();
-        filter = filter.replace('*', '%');
-        for (String filterSingle : filter.split(";")) {
-            if (sb.length()>0) {
+        StringBuilder sb=new StringBuilder();
+        for (Filter filter:filters) {
+            if (sb.length()!=0) {
                 sb.append(" and ");
             }
-            String[] filterParams = filterSingle.split("\\.");
+            String pattern = filterToSqlLike(filter.getName());
+            String[] patternArray = pattern.split("\\.",2);
             sb.append('(');
-            if (filterParams.length==2) {
-                sb.append(schemaColumn).append(" like '").append(filterParams[0]).append("' and ");
-                sb.append(objectColumn).append(" like '").append(filterParams[1]).append("')");
+            if (patternArray.length==2) {
+                sb.append(schemaColumn).append(" like '").append(patternArray[0]).append("' and ");
+                sb.append(objectColumn).append(" like '").append(patternArray[1]).append("')");
             } else {
-                sb.append(objectColumn).append(" like '").append(filterParams[0]).append("')");
+                sb.append(objectColumn).append(" like '").append(patternArray[0]).append("')");
             }
         }
         return sb.toString();
     }
-
-
+    
     protected abstract void setTableColumnComments(Connection conn, String database,
             NameMap<Table> tables) throws SQLException;
 
@@ -291,8 +307,12 @@ public abstract class JDBCDialect implements Dialect {
             }
         }
     }
+    
+    protected boolean isImport(RevEngineeringOptions options, Class<? extends BaseCustomEntity> clazz) {
+        return !options.isExcludedObjectType(getObjectTypeByClass(clazz));
+    }
 
-     public Model getModel(String name, RevEngineeringOptions options) {
+    public Model getModel(String name, RevEngineeringOptions options) {
         Model model = new Model();
         model.setConnection(connector.getConnectionInfo());
         model.setName(name);
@@ -301,14 +321,16 @@ public abstract class JDBCDialect implements Dialect {
         model.setCustomData("dialect", getDialectName());
         model.setCustomData("dialect_version", getDialectVersion());
 
-        if (options.importTables) {
+        if (isImport(options,Table.class)) {
             model.setTables(getTables(options).toList());
         }
-        if (options.importViews) {
+        if (isImport(options,View.class)) {
             model.setViews(getViews(options).toList());
         }
-        if (options.importProcedures) {
+        if (isImport(options,Procedure.class)) {
             model.setProcedures(getProcedures(options).toList());
+        }
+        if (isImport(options,Function.class)) {
             model.setFunctions(getFunctions(options).toList());
         }
         return model;

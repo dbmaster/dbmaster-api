@@ -14,8 +14,11 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import javax.persistence.Access;
+import javax.persistence.AccessType;
 import javax.persistence.Embeddable;
 import javax.persistence.Transient;
+import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
 import org.apache.commons.lang.StringUtils;
@@ -24,13 +27,15 @@ import com.branegy.service.core.exception.IllegalArgumentApiException;
 
 @Embeddable
 public class RevEngineeringOptions {
-    private static final Pattern FILTERS_PATTERN = Pattern.compile("\\s*(?<op>[+-]?)\\s*(?<type>[^:]+)\\s:\\s*(?<name>.+)\\s*");
+    private static final Pattern FILTERS_PATTERN = Pattern.compile("\\s*(?<op>[+-]?)\\s*(?<type>[^:]+)\\s*:\\s*(?<name>.+)\\s*");
 
     @Size(min=1,max=255)
-    private String database;
+    String database;
     
-    @javax.persistence.Column(length=8*1024,nullable=false)
-    private String config;
+    @Access(AccessType.PROPERTY)
+    @javax.persistence.Column(name="config",length=8*1024,nullable=false)
+    @NotNull
+    String rawConfig;
     
     public String getDatabase() {
         return database;
@@ -129,7 +134,7 @@ public class RevEngineeringOptions {
     }
     
     private static class FilterList{
-        private final boolean includeByDefault;
+        private final boolean includeByDefault; // = no explicit include filters
         private final List<Filter> filters;
         
         public FilterList(boolean includeByDefault, List<Filter> filters) {
@@ -153,20 +158,20 @@ public class RevEngineeringOptions {
     // if include + exclude -> includeByDefault = false
     
     public String getRawConfig() {
-        return config;
+        return rawConfig;
     }
     
     public synchronized void setRawConfig(String config) {
         if (config == null) {
-            this.config = "";
+            this.rawConfig = "";
             this.filtersByType = Collections.emptyMap();
             return;
         }
-        if (config.equals(this.config)) {
+        if (config.equals(this.rawConfig)) {
             return;
         }
         Map<String, Set<FilterItemImpl>> filters = Pattern
-        .compile("(\\s*\\r?\\n\\s*)*")
+        .compile("(\\s*[\\r\\n]\\s*)+")
         .splitAsStream(config)
         .map(line->{
             Matcher matcher = FILTERS_PATTERN.matcher(line);
@@ -190,6 +195,7 @@ public class RevEngineeringOptions {
             filtersByType.put(e.getKey(), new FilterList(includeAll, new ArrayList<>(set)));
         }
         this.filtersByType = filtersByType;
+        this.rawConfig = config;
     }
     
     public boolean isExcludedObjectType(String objectType) {
