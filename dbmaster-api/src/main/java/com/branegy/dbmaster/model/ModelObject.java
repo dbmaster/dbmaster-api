@@ -187,9 +187,8 @@ public abstract class ModelObject extends DatabaseObject<Model> {
     }
     
     private int indexOfByName(List<? extends Column> list, String name){
-        name = name.toUpperCase();
         for (int i=0; i<list.size(); ++i){
-            if (name.equals(list.get(i).getName().toUpperCase())){
+            if (name.equalsIgnoreCase(list.get(i).getName())){
                 return i;
             }
         }
