@@ -152,9 +152,9 @@ public class RevEngineeringOptions {
     @Transient
     volatile Map<String,FilterList> filtersByType = new HashMap<>(); 
     
-    // if empty             -> includeByDefault = true
-    // if exclude only      -> includeByDefault = true
-    // if include only      -> includeByDefault = false
+    // if empty             -> includeByDefault = false       | not import
+    // if exclude only      -> includeByDefault = true        | include all, except excluded
+    // if include only      -> includeByDefault = false       | 
     // if include + exclude -> includeByDefault = false
     
     public String getRawConfig() {
@@ -193,6 +193,7 @@ public class RevEngineeringOptions {
             Set<FilterItemImpl> set = e.getValue();
             boolean includeAll = !set.stream().anyMatch(FilterItemImpl::isInclude);
             filtersByType.put(e.getKey(), new FilterList(includeAll, new ArrayList<>(set)));
+            assert !set.isEmpty();
         }
         this.filtersByType = filtersByType;
         this.rawConfig = config;
@@ -201,7 +202,7 @@ public class RevEngineeringOptions {
     public boolean isExcludedObjectType(String objectType) {
         FilterList filterList = filtersByType.get(objectType);
         if (filterList == null) {
-            return false;
+            return true;
         }
         List<Filter> filters = filterList.getFilters();
         return filters.size()==1 && "*".equals(filters.get(0).getName()) && !filters.get(0).isInclude();
@@ -210,7 +211,7 @@ public class RevEngineeringOptions {
     public boolean isIncludeByDefault(String objectType) {
         FilterList filterList = filtersByType.get(objectType);
         if (filterList == null) {
-            return true;
+            return false;
         }
         return filterList.isIncludeByDefault();
     }
@@ -241,7 +242,7 @@ public class RevEngineeringOptions {
     public boolean accept(String objectType, String name) {
         FilterList filterList = filtersByType.get(objectType);
         if (filterList == null) {
-            return true;
+            return false;
         }
 
         ListIterator<Filter> it = filterList.getFilters().listIterator();

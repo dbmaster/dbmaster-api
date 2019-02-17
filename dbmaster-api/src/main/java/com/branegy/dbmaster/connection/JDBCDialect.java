@@ -2,6 +2,7 @@ package com.branegy.dbmaster.connection;
 
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -37,6 +38,42 @@ public abstract class JDBCDialect implements Dialect {
     protected Set<String> typesWithPrecesion;
     
     private boolean caseSensitive;
+    
+    
+    protected static final class PreparedSql{
+        private final StringBuilder sql;
+        private final List<?> parameters = new ArrayList<>();
+        
+        public PreparedSql(String sql) {
+            this.sql = new StringBuilder(sql);
+        }
+        
+        @SuppressWarnings("unchecked")
+        public PreparedSql(String sql,List<?> parameters) {
+            this.sql =  new StringBuilder(sql);
+            ((List<Object>)this.parameters).addAll(parameters);
+        }
+
+        public String getSql() {
+            return sql.toString();
+        }
+
+        public List<?> getParameters() {
+            return parameters;
+        }
+        
+        public PreparedStatement populatePreparedStatement(PreparedStatement ps) throws SQLException {
+            return populatePreparedStatement(ps,1);
+        }
+        
+        public PreparedStatement populatePreparedStatement(PreparedStatement ps,int from) throws SQLException {
+            for (int i=0, len=parameters.size(); i<len; ++i) {
+                ps.setObject(from+i, parameters.get(i));
+            }
+            return ps;
+        }
+    }
+    
     
     public JDBCDialect(JdbcConnector cp, Connection connection) throws SQLException {
         this(true, cp, connection);
@@ -209,35 +246,48 @@ public abstract class JDBCDialect implements Dialect {
         return BaseCustomEntity.getDiscriminator(objecttClazz);
     }
     
-    protected String getSqlFilter(String schemaColumn,String objectColumn,
+    protected PreparedSql getSqlFilter(String schemaColumn,String objectColumn,
             String objectType, RevEngineeringOptions options) {
         if (options.isExcludedObjectType(objectType)) {
-            return "1=0"; // = FALSE : empty result
+            return new PreparedSql("1=0"); // = FALSE : empty result
         } else {
             List<Filter> excludedObjects = options.getExcludedObjects(objectType);
             String filter = "(";
+            List<Object> parameters = new ArrayList<>();
             if (!options.isIncludeByDefault(objectType)) {
                 List<Filter> includedObjects = options.getIncludedObjects(objectType);
-                filter += '('
-                            +generateSqlFilter(schemaColumn, objectColumn, includedObjects, true)
-                          +") and ";
+                PreparedSql include = generateSqlFilter(schemaColumn, objectColumn, includedObjects, true);
+                filter += '('+ include.getSql()+") and ";
+                parameters.addAll(include.getParameters());
             }
-            return filter+"not("
-                        +generateSqlFilter(schemaColumn, objectColumn, excludedObjects, false)
-                   +"))";
+            PreparedSql excluded = generateSqlFilter(schemaColumn, objectColumn, excludedObjects, false);
+            filter += "not("+excluded.getSql()+"))";
+            parameters.addAll(excluded.getParameters());
+            return new PreparedSql(filter, parameters);
         }
     }
     
-    protected String getSqlFilter(String schemaColumn,String objectColumn,
+    protected PreparedSql getSqlFilter(String schemaColumn,String objectColumn,
             Class<? extends BaseCustomEntity> objecttClazz, RevEngineeringOptions options) {
         return getSqlFilter(schemaColumn, objectColumn, getObjectTypeByClass(objecttClazz),options);
     }
     
-    private String generateSqlFilter(String schemaColumn,String objectColumn, List<Filter> filters, 
+    private void sqlLike(StringBuilder sb, List<Object> parameters, String key, String value) {
+        if (isCaseSensitive()) {
+            sb.append(key).append(" like ?");
+            parameters.add(value);
+        } else {
+            sb.append("UPPER(").append(key).append(") like ?");
+            parameters.add(value.toUpperCase());
+        }
+    }
+    
+    private PreparedSql generateSqlFilter(String schemaColumn,String objectColumn, List<Filter> filters, 
             boolean defReturn) {
         if (filters.isEmpty()) {
-            return defReturn?"1=1":"1=0";
+            return new PreparedSql(defReturn?"1=1":"1=0");
         }
+        List<Object> parameters = new ArrayList<>();
         StringBuilder sb=new StringBuilder();
         for (Filter filter:filters) {
             if (sb.length()!=0) {
@@ -247,13 +297,15 @@ public abstract class JDBCDialect implements Dialect {
             String[] patternArray = pattern.split("\\.",2);
             sb.append('(');
             if (patternArray.length==2) {
-                sb.append(schemaColumn).append(" like '").append(patternArray[0]).append("' and ");
-                sb.append(objectColumn).append(" like '").append(patternArray[1]).append("')");
+                sqlLike(sb,parameters,schemaColumn,patternArray[0]);
+                sb.append(" and ");
+                sqlLike(sb,parameters,objectColumn,patternArray[1]);
             } else {
-                sb.append(objectColumn).append(" like '").append(patternArray[0]).append("')");
+                sqlLike(sb,parameters,objectColumn,patternArray[0]);
             }
+            sb.append(")");
         }
-        return sb.toString();
+        return new PreparedSql(sb.toString(),parameters);
     }
     
     protected abstract void setTableColumnComments(Connection conn, String database,
