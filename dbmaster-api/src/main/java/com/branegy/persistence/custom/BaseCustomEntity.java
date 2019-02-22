@@ -1,6 +1,7 @@
 package com.branegy.persistence.custom;
 
 import java.util.Map;
+import java.util.function.BiConsumer;
 
 import javax.persistence.Access;
 import javax.persistence.AccessType;
@@ -34,6 +35,12 @@ public abstract class BaseCustomEntity extends BaseEntity {
             custom.setClazz(getDiscriminator());
         }
         return custom.getMap();
+    }
+    
+    public final void forEachCustomData(BiConsumer<String, Object> consumer) {
+        if (custom != null) {
+            custom.getMap().forEach(consumer);
+        }
     }
 
     @SuppressWarnings("unchecked")
