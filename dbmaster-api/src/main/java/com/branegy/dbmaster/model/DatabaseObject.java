@@ -81,9 +81,8 @@ public abstract class DatabaseObject<P extends DatabaseObject<?>> extends BaseCu
        if (list == null) {
            return null;
        } else {
-           name = name.toLowerCase();
            for (T t : list) {
-               if (name.equals(t.getName().toLowerCase())) {
+               if (name.equalsIgnoreCase(t.getName())) {
                    return t;
                }
            }

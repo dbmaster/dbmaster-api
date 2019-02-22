@@ -56,6 +56,7 @@ public class RevEngineeringOptions {
         private final String name;
         private final boolean pattern;
         private final boolean include;
+        private Pattern compiledPattern;
        
         public FilterItemImpl(String name, boolean pattern, boolean include) {
             this.name = name;
@@ -84,10 +85,14 @@ public class RevEngineeringOptions {
                 if (StringUtils.isEmpty(name)) {
                     return false;
                 }
-                String regex = ("\\Q" + this.name + "\\E")
-                        .replace("*", "\\E.*\\Q")
-                        .replace("?", "\\E.\\Q");
-                return name.matches(regex);
+                if (compiledPattern == null) {
+                    compiledPattern = Pattern.compile(
+                        ("\\Q" + this.name + "\\E")
+                            .replace("*", "\\E.*\\Q")
+                            .replace("?", "\\E.\\Q")
+                    );
+                }
+                return compiledPattern.matcher(name).matches();
             } else {
                 return this.name.equals(name);
             }
@@ -246,8 +251,8 @@ public class RevEngineeringOptions {
         }
 
         ListIterator<Filter> it = filterList.getFilters().listIterator();
-        while (it.hasNext()) {
-            Filter item = it.next();
+        while (it.hasPrevious()) {
+            Filter item = it.previous();
             if (item.accept(name)) {
                 return item.isInclude(); 
             }

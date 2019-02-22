@@ -7,7 +7,7 @@ package com.branegy.dbmaster.connection;
  * TODO Should be refactored to keep connection open over multiple requests
  * @author slava
  */
-public interface Dialect {
+public interface Dialect extends AutoCloseable{
     
     public void close();
     

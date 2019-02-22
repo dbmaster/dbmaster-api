@@ -10,6 +10,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -236,7 +237,7 @@ public abstract class JDBCDialect implements Dialect {
     }
 
     protected String filterToSqlLike(String filter) {
-        return filter == null || filter.trim().length() == 0 
+        return StringUtils.isBlank(filter) 
                 ? null
                 : filter.replace('*', '%')
                         .replace('?', '_');
@@ -361,7 +362,11 @@ public abstract class JDBCDialect implements Dialect {
     }
     
     protected boolean isImport(RevEngineeringOptions options, Class<? extends BaseCustomEntity> clazz) {
-        return !options.isExcludedObjectType(getObjectTypeByClass(clazz));
+        return isImport(options,getObjectTypeByClass(clazz));
+    }
+    
+    protected boolean isImport(RevEngineeringOptions options, String clazz) {
+        return !options.isExcludedObjectType(clazz);
     }
 
     public Model getModel(String name, RevEngineeringOptions options) {
