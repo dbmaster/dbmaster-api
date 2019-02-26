@@ -14,7 +14,7 @@ public interface Comparer {
     
     /**
      * Matches two objects and returns similarity of the objects. Used to detect duplicated and renamed objects.
-     * Source and target are on the same hierarchy level and old objects of the same type
+     * Source and target are on the same hierarchy level and objects of the same type
      * @param source   a sync pair with object that can possibly be copied or renamed
      * @param target   a sync pair with status <code>NEW</code>
      * @param session  a instance of current sync session

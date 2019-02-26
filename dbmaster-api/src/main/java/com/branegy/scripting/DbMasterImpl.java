@@ -48,8 +48,8 @@ public class DbMasterImpl implements DbMaster {
         synchronized (resources) {
             for (Object resource : resources) {
                 try{
-                    if (resource instanceof java.io.Closeable) {
-                        ((java.io.Closeable)resource).close();
+                    if (resource instanceof AutoCloseable) {
+                        ((AutoCloseable)resource).close();
                     } else if (resource instanceof Context) {
                         ((Context) resource).close();
                     } else if (resource instanceof java.sql.Connection) {
@@ -63,10 +63,6 @@ public class DbMasterImpl implements DbMaster {
                                 connection.close();
                             }
                         }
-                    /*} else if (resource instanceof AutoCloseable){
-                        ((AutoCloseable) resource).close();*/
-                    } else if (resource instanceof Statement){
-                        ((Statement) resource).close();
                     } else {
                         String className = resource.getClass().getCanonicalName();
                         throw new RuntimeException("Do not know how to close "+className);

@@ -102,11 +102,11 @@ public abstract class SyncSession {
      */
     public synchronized List<MatchPair> findSimilarSourceObjects(SyncPair contextPair,
             boolean searchWithinDeleted, float minSimilarity) {
-        similarityResults = new ArrayList<MatchPair>();
+        List<MatchPair> similarityResults = new ArrayList<MatchPair>();
 
         for (SyncPair targetPair : contextPair.getChildren()) {
             if (targetPair.isSelected()) {
-                searchMatches(getSyncResult(), targetPair, minSimilarity, searchWithinDeleted);
+                searchMatches(similarityResults, getSyncResult(), targetPair, minSimilarity, searchWithinDeleted);
             }
         }
         Collections.sort(similarityResults, new Comparator<MatchPair>() {
@@ -122,18 +122,13 @@ public abstract class SyncSession {
         return similarityResults;
     }
 
-    /**
-     * Temporary structure to hold search parameters and results.
-     */
-    private List<MatchPair> similarityResults;
-    
-    private void searchMatches(SyncPair sourcePair, SyncPair targetPair, float minSimilarity,
-            boolean searchWithinDeleted) {
+    private void searchMatches(List<MatchPair> similarityResults, SyncPair sourcePair, SyncPair targetPair, 
+            float minSimilarity, boolean searchWithinDeleted) {
         if (sourcePair.getId() == targetPair.getId()) {
             return;
         }
         for (SyncPair child : sourcePair.getChildren()) {
-            searchMatches(child, targetPair, minSimilarity, searchWithinDeleted);
+            searchMatches(similarityResults,child, targetPair, minSimilarity, searchWithinDeleted);
         }
         if (searchWithinDeleted) {
             if (sourcePair.getChangeType() != ChangeType.DELETED){
@@ -157,21 +152,17 @@ public abstract class SyncSession {
         SearchTarget target;
         List<SyncPair> results = new ArrayList<SyncPair>();
     }
-    /**
-     * Temporary structure to hold search parameters and results.
-     */
-    private SearchBin searchBin;
     
     public synchronized List<SyncPair> findObjects(String query, SyncPair typePattern, SearchTarget target) {
-        searchBin = new SearchBin();
+        SearchBin searchBin = new SearchBin();
         searchBin.query = query==null?null:query.toUpperCase();
         searchBin.objectType = typePattern == null? null: typePattern.getObjectType(); // TODO fix impl
         searchBin.target = target;
-        findObject(getSyncResult(), "");
+        findObject(searchBin,getSyncResult(), "");
         return searchBin.results;
     }
     
-    private void findObject(SyncPair pair, String path) {
+    private void findObject(SearchBin searchBin, SyncPair pair, String path) {
         String newPath;
         if (searchBin.target==SearchTarget.SOURCE) {
             if (pair.getSource() == null) {
@@ -198,7 +189,7 @@ public abstract class SyncSession {
             searchBin.results.add(pair);
         }
         for (SyncPair child : pair.getChildren()) {
-            findObject(child, newPath);
+            findObject(searchBin,child, newPath);
         }
     }
 

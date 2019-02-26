@@ -2,12 +2,13 @@ package com.branegy.dbmaster.sync.api;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Structure to detect renames
  */
 public class MatchPair {
-    private static long globalId;
+    private static final AtomicLong GLOBAL_ID = new AtomicLong();
     
     final long id;
     boolean selected;
@@ -23,7 +24,7 @@ public class MatchPair {
     long sourcePairId;
 
     public MatchPair(SyncPair sourcePair, SyncPair targetPair, float similarity) {
-        this.id = getNextId();
+        this.id = GLOBAL_ID.getAndIncrement();
         selected = false;
         sourceName = sourcePair.getUniqueSourceName();
         source = sourcePair;
@@ -33,10 +34,6 @@ public class MatchPair {
         objectType = sourcePair.getObjectType();
     }
     
-    private static synchronized long getNextId(){
-        return globalId++;
-    }
-
     public long getId() {
         return id;
     }
