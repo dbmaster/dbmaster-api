@@ -3,6 +3,7 @@ package com.branegy.dbmaster.util;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.function.BiFunction;
 
 /**
  * A special implementation of map that accepts non-null string for keys and ignores key case.
@@ -51,8 +52,15 @@ public class NameMap<V> extends LinkedHashMap<String, V> {
         ensureStringArgument(key);
         return super.remove(((String)key).toLowerCase());
     }
+    
+    
 
     public List<V> toList() {
         return new ArrayList<V>(values());
+    }
+
+    @Override
+    public V merge(String key, V value, BiFunction<? super V, ? super V, ? extends V> remappingFunction) {
+        return super.merge(key.toLowerCase(), value, remappingFunction);
     }
 }
