@@ -19,27 +19,23 @@ import com.branegy.scripting.ScriptExecutor;
 import com.branegy.service.connection.model.DatabaseConnection;
 import com.branegy.service.core.exception.ApiException;
 import com.branegy.util.DataDirHelper;
+import com.branegy.util.IOUtils;
 
-public class JdbcConnector extends Connector {
+class JdbcConnector extends Connector {
     protected final Logger logger = LoggerFactory.getLogger(getClass());
 
-    JDBCDialect dialect;
-
-    String dialectName;
-    String dialectVersion;
-        
-    public JdbcConnector(ConnectorInfo driverInfo, DatabaseConnection ci) {
-        super(driverInfo, ci);
+    public JdbcConnector(DriverInfo driverInfo, DatabaseConnection databaseConnection) {
+        super(driverInfo, databaseConnection);
     }
 
     public Connection getJdbcConnection(String database) {
         try {
-            Properties properties = ci.asProperties();
-            String username = ci.getUsername();
+            Properties properties = databaseConnection.asProperties();
+            String username = databaseConnection.getUsername();
             if (username!=null && !username.isEmpty()) {
                 properties.setProperty("user", username);
             }
-            String password = ci.getPassword();
+            String password = databaseConnection.getPassword();
             if (password!=null && !password.isEmpty()) {
                 properties.setProperty("password", password);
             }
@@ -49,18 +45,18 @@ public class JdbcConnector extends Connector {
             properties.values().removeIf(java.util.Objects::isNull);
 	
             Driver jdbcDriver = getJdbcDriver();
-            if (!jdbcDriver.acceptsURL(ci.getUrl())) {
+            if (!jdbcDriver.acceptsURL(databaseConnection.getUrl())) {
                 String msg;
-                if (ci.getName() == null) {
+                if (databaseConnection.getName() == null) {
                     msg = "Invalid connection URL. Check URL format and try again.";
                 } else {
-                    msg = "Invalid connection URL for " + ci.getName() + ". Check URL format and try again.";
+                    msg = "Invalid connection URL for " + databaseConnection.getName() + ". Check URL format and try again.";
                 }
                 throw new ConnectionApiException(msg);
             }
-            final Connection connection = jdbcDriver.connect(ci.getUrl(), properties);
+            final Connection connection = jdbcDriver.connect(databaseConnection.getUrl(), properties);
             if (connection==null) {
-                throw new ConnectionApiException(getExceptionPrefix(ci) + "Check connection URL and try again");
+                throw new ConnectionApiException(getExceptionPrefix(databaseConnection) + "Check connection URL and try again");
             }
             if (database!=null && driverInfo.getDatabaseNameProperty()==null) {
                 connection.setCatalog(database);
@@ -72,18 +68,18 @@ public class JdbcConnector extends Connector {
         } catch (Exception e) {
             String msg;
             if (findCause(e, ConnectException.class) != null) {
-                msg = getExceptionPrefix(ci) + "Connection refused";
+                msg = getExceptionPrefix(databaseConnection) + "Connection refused";
             } else if (findCause(e, UnknownHostException.class) != null) {
-                msg = getExceptionPrefix(ci) + "Cannot resolve host";
+                msg = getExceptionPrefix(databaseConnection) + "Cannot resolve host";
                 String host = findCause(e, UnknownHostException.class).getMessage();
                 if (host!=null) {
                     msg +=" \""+host+"\"";
                 }
             } else {
                 if (database!=null) {
-                    msg = getExceptionPrefix(ci)+"Database \""+database+"\". "+e.getMessage();
+                    msg = getExceptionPrefix(databaseConnection)+"Database \""+database+"\". "+e.getMessage();
                 } else {
-                    msg = getExceptionPrefix(ci)+e.getMessage();
+                    msg = getExceptionPrefix(databaseConnection)+e.getMessage();
                 }
             }
             throw new DriverConnectionApiException(msg,e);
@@ -91,20 +87,15 @@ public class JdbcConnector extends Connector {
     }
     
     private String getExceptionPrefix(DatabaseConnection dc){
-        if (ci.getName() == null){
+        if (databaseConnection.getName() == null){
             return "Cannot connect: ";
         } else {
             return "Cannot connect to \""+dc.getName()+"\": ";
         }
     }
     
-
-    @Override
-    public synchronized JDBCDialect connect() {
-        if (dialect==null) {
-            dialect = loadDialect();
-        }
-        return dialect;
+    public synchronized AbstractJdbcDialect connect() {
+        return loadDialect();
     }
 
     protected final Driver getJdbcDriver() {
@@ -122,7 +113,7 @@ public class JdbcConnector extends Connector {
         }
     }
 
-    protected JDBCDialect loadDialect() {
+    protected AbstractJdbcDialect loadDialect() {
         Connection connection = null;
         String dialectFileName = null;
         try {
@@ -149,8 +140,8 @@ public class JdbcConnector extends Connector {
                 dialectFileName = dbmd.getDatabaseProductName();
             }
 
-            dialectName = dialectFileName;
-            dialectVersion = dbmd.getDatabaseMajorVersion()+"-"+dbmd.getDatabaseMinorVersion();
+            String dialectName = dialectFileName;
+            String dialectVersion = dbmd.getDatabaseMajorVersion()+"-"+dbmd.getDatabaseMinorVersion();
             dialectFileName = dialectName + "-"+dialectVersion;
             File scriptFile = new File(DataDirHelper.getDataDir()+"dialects/"+ dialectFileName+".groovy");
             if (!scriptFile.exists()) {
@@ -162,45 +153,25 @@ public class JdbcConnector extends Connector {
                 throw new ApiException("Implementation of dialect for database " +
                                         dialectFileName+" was not found");
             }
-            return instanceDialect(scriptFile, connection);
+            return instanceDialect(scriptFile, connection, dialectName, dialectVersion);
         } catch (ApiException e) {
+            IOUtils.closeQuietly(connection);
             throw e;
         } catch (FileNotFoundException e){
+            IOUtils.closeQuietly(connection);
             throw new ConnectionApiException("Dialect in not found "+ dialectFileName, e);
         } catch (Exception e) {
+            IOUtils.closeQuietly(connection);
             throw new ConnectionApiException(e.getMessage(), e);
-        } finally {
-            closeConnection(connection);
         }
     }
 
-    protected void closeConnection(Connection connection) {
-        try {
-            if (connection!=null) connection.close();
-        } catch (Exception e) {
-            logger.error("Cannot close connection", e);
-        }
-    }
-    
-    protected JDBCDialect instanceDialect(File scriptFile, Connection connection) throws Exception{
+    protected AbstractJdbcDialect instanceDialect(File scriptFile, Connection connection, String dialectName, String dialectVersion) throws Exception{
         ClassLoader parentCL = getClass().getClassLoader();
         Class<?> dialectClass = ScriptExecutor.parseClass(parentCL, "", scriptFile);
         
-        Constructor<?> constr = dialectClass.getConstructor(JdbcConnector.class, Connection.class);
+        Constructor<?> constr = dialectClass.getConstructor(JdbcConnector.class, Connection.class,String.class,String.class);
         constr.setAccessible(true);
-        return (JDBCDialect)constr.newInstance(this, connection);
+        return (AbstractJdbcDialect)constr.newInstance(this, connection,dialectName,dialectVersion);
     }
-      
-    @Override
-    public boolean testConnection() {
-        try {
-            JDBCDialect dialect2 = connect();
-            dialect2.getDatabases();
-            dialect2.close();
-            return true;
-        } catch (Exception e) {
-            return false;
-        }
-    }
-    
 }

@@ -6,6 +6,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
@@ -24,22 +25,26 @@ import com.branegy.dbmaster.model.RevEngineeringOptions.Filter;
 import com.branegy.dbmaster.model.Table;
 import com.branegy.dbmaster.model.View;
 import com.branegy.dbmaster.util.NameMap;
+import com.branegy.inventory.model.Job;
 import com.branegy.persistence.custom.BaseCustomEntity;
 import com.branegy.service.connection.model.DatabaseConnection;
 import com.branegy.service.core.exception.ApiException;
+import com.branegy.util.IOUtils;
 
-public abstract class JDBCDialect implements Dialect {
-    protected static final Logger logger = LoggerFactory.getLogger(JDBCDialect.class);
+public abstract class AbstractJdbcDialect implements JdbcDialect {
+    protected static final Logger logger = LoggerFactory.getLogger(AbstractJdbcDialect.class);
+    
+    private final String dialectName;
+    private final String dialectVersion; 
+    private final Connection connection;
 
     protected final JdbcConnector connector;
     protected final boolean catalog;
+    private final boolean caseSensitive;
     
     protected Set<String> typesWithSize;
     protected Set<String> typesWithScale;
     protected Set<String> typesWithPrecesion;
-    
-    private boolean caseSensitive;
-    
     
     protected static final class PreparedSql{
         private final StringBuilder sql;
@@ -75,33 +80,51 @@ public abstract class JDBCDialect implements Dialect {
         }
     }
     
-    
-    public JDBCDialect(JdbcConnector cp, Connection connection) throws SQLException {
-        this(true, cp, connection);
+    public AbstractJdbcDialect(JdbcConnector cp, Connection connection, String dialectName, String dialectVersion)
+            throws SQLException {
+        this(true,cp,connection,dialectName,dialectVersion);
     }
     
-    /**
-     * @param catalog indicates that dialect will use catalogs terminology instead of schemas
-     * @param cp
-     * @throws SQLException
-     */
-    public JDBCDialect(boolean catalog, JdbcConnector cp, Connection connection) throws SQLException {
+    public AbstractJdbcDialect(boolean catalog, JdbcConnector cp, Connection connection, String dialectName, String dialectVersion)
+            throws SQLException {
         this.catalog = catalog;
         this.connector = cp;
-        this.caseSensitive = populateCaseSensitivity(connection);
+        this.connection = connection;
+        this.caseSensitive = populateCaseSensitivity();
+        this.dialectName = dialectName;
+        this.dialectVersion = dialectVersion;
     }
-
-    protected boolean populateCaseSensitivity(Connection connection) throws SQLException {
+    
+    @Override
+    public Connection getConnection() {
+        return connection;
+    }
+    
+    protected Connection getConnection(String database){
+        if (database!=null) {
+            try {
+                if (this.catalog) {
+                    connection.setCatalog(database);
+                } else {
+                    connection.setSchema(database);
+                }
+            } catch (SQLException e) {
+                throw new ConnectionApiException("Can't set database name",e);
+            }
+        }
+        return connection;
+    }
+    
+    protected boolean populateCaseSensitivity() throws SQLException {
         return connection.getMetaData().supportsMixedCaseIdentifiers();
     }
 
-    protected NameMap<Table> getTables(RevEngineeringOptions options) {
+    protected NameMap<Table> getTables(Connection connection, RevEngineeringOptions options) {
         try {
             String TABLE_TYPE = getObjectTypeByClass(Table.class);
             
-            Connection conn = getProvider().getJdbcConnection(options.getDatabase());
             NameMap<Table> tables = new NameMap<Table>(200);
-            DatabaseMetaData metaData = conn.getMetaData();
+            DatabaseMetaData metaData = connection.getMetaData();
 
             boolean system = false;
             ResultSet tablesRs = metaData.getTables(
@@ -127,8 +150,8 @@ public abstract class JDBCDialect implements Dialect {
                 // populateIndexes(c,metaData, tableInfo);
             }
             tablesRs.close();
-            populateTableColumns(conn, options, tables);
-            conn.close();
+            populateTableColumns(connection, options, tables);
+            connection.close();
 
             return tables;
         } catch (Exception e) {
@@ -319,45 +342,31 @@ public abstract class JDBCDialect implements Dialect {
         return connector.getConnectionInfo();
     }
 
+    @Override
     public List<DatabaseInfo> getDatabases() {
-        Connection conn = null;
-        try {
-            conn = connector.getJdbcConnection(null);
-            List<DatabaseInfo> result = new ArrayList<DatabaseInfo>();
-            ResultSet rs = null;
-            try{
-                if (catalog){
-                    rs = conn.getMetaData().getCatalogs();
-                    while (rs.next()) {
-                        result.add(new DatabaseInfo(rs.getString("TABLE_CAT"),null, true));
-                    }
-                } else {
-                    rs = conn.getMetaData().getSchemas();
-                    while (rs.next()) {
-                        result.add(new DatabaseInfo(rs.getString("TABLE_SCHEM"),null, true));
-                    }
+        Connection conn = getConnection();
+        List<DatabaseInfo> result = new ArrayList<DatabaseInfo>();
+        ResultSet rs = null;
+        try{
+            if (catalog){
+                rs = conn.getMetaData().getCatalogs();
+                while (rs.next()) {
+                    result.add(new DatabaseInfo(rs.getString("TABLE_CAT"),null, true));
                 }
-                for (DatabaseInfo dbInfo : result) {
-                    dbInfo.setCustomData("State", "ONLINE");
+            } else {
+                rs = conn.getMetaData().getSchemas();
+                while (rs.next()) {
+                    result.add(new DatabaseInfo(rs.getString("TABLE_SCHEM"),null, true));
                 }
-            } finally{
-                if (rs!=null){
-                    rs.close();
-                }
+            }
+            for (DatabaseInfo dbInfo : result) {
+                dbInfo.setCustomData("State", "ONLINE");
             }
             return result;
         } catch (ApiException e) {
             throw e;
         } catch (Exception e) {
             throw new ConnectionApiException("Cannot load databases:"+e.getLocalizedMessage(), e);
-        } finally {
-            try {
-                if (conn != null) {
-                    conn.close();
-                }
-            } catch (Exception e) {
-                logger.error("Cannot load databases", e);
-            }
         }
     }
     
@@ -369,7 +378,13 @@ public abstract class JDBCDialect implements Dialect {
         return !options.isExcludedObjectType(clazz);
     }
 
+    @Override
     public Model getModel(String name, RevEngineeringOptions options) {
+        Connection connection = getConnection(options.getDatabase());
+        return getModel(connection, name, options);
+    }
+    
+    protected Model getModel(Connection connection, String name, RevEngineeringOptions options) {
         Model model = new Model();
         model.setConnection(connector.getConnectionInfo());
         model.setName(name);
@@ -379,54 +394,61 @@ public abstract class JDBCDialect implements Dialect {
         model.setCustomData("dialect_version", getDialectVersion());
 
         if (isImport(options,Table.class)) {
-            model.setTables(getTables(options).toList());
+            model.setTables(getTables(connection, options).toList());
         }
         if (isImport(options,View.class)) {
-            model.setViews(getViews(options).toList());
+            model.setViews(getViews(connection, options).toList());
         }
         if (isImport(options,Procedure.class)) {
-            model.setProcedures(getProcedures(options).toList());
+            model.setProcedures(getProcedures(connection, options).toList());
         }
         if (isImport(options,Function.class)) {
-            model.setFunctions(getFunctions(options).toList());
+            model.setFunctions(getFunctions(connection, options).toList());
         }
         return model;
     }
 
-    protected NameMap<View> getViews(RevEngineeringOptions options) {
+    protected NameMap<View> getViews(Connection connection, RevEngineeringOptions options) {
         return new NameMap<View>(0);
     }
 
-    protected NameMap<Procedure> getProcedures(RevEngineeringOptions options) {
+    protected NameMap<Procedure> getProcedures(Connection connection, RevEngineeringOptions options) {
         return new NameMap<Procedure>(0);
     }
     
-    protected NameMap<Function> getFunctions(RevEngineeringOptions options) {
+    protected NameMap<Function> getFunctions(Connection connection, RevEngineeringOptions options) {
         return new NameMap<Function>(0);
     }
     
     @Override
-    public void close() {
-        // TODO Dialect should be like a connection
-        // Need replacing existing code
-    }
-
-    public final String getDialectName() {
-        if (connector.dialectName==null){
-            throw new NullPointerException();
-        }
-        return connector.dialectName;
+    public List<Job> getJobs() {
+        return Collections.emptyList();
     }
     
-    public final String getDialectVersion() {
-        if (connector.dialectVersion==null) {
-            throw new NullPointerException();
-        }
-        return connector.dialectVersion;
+    @Override
+    public void close() {
+        closeQuietly(connection);
     }
 
+    @Override
+    public final String getDialectName() {
+        return dialectName;
+    }
+    
+    @Override
+    public final String getDialectVersion() {
+        return dialectVersion;
+    }
+
+    @Override
     public boolean isCaseSensitive() {
         return caseSensitive;
     }
+    
+    protected static void closeQuietly(AutoCloseable close) {
+        IOUtils.closeQuietly(close);
+    }
+
+    
 
 }

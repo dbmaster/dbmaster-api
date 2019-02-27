@@ -2,7 +2,7 @@ package com.branegy.service.connection.api;
 
 import java.util.List;
 
-import com.branegy.dbmaster.connection.ConnectorInfo;
+import com.branegy.dbmaster.connection.DriverInfo;
 import com.branegy.dbmaster.model.DatabaseInfo;
 import com.branegy.service.connection.model.DatabaseConnection;
 import com.branegy.service.core.QueryRequest;
@@ -19,7 +19,7 @@ public interface ConnectionService {
     DatabaseConnection findByName(String connectionName);
     
     List<DatabaseInfo> testConnection(DatabaseConnection connection);
-    List<ConnectorInfo> getDriverList();
+    List<DriverInfo> getDriverList();
 
     DatabaseConnection createConnection(DatabaseConnection connection);
     DatabaseConnection updateConnection(DatabaseConnection connection);

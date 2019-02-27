@@ -11,9 +11,9 @@ import com.branegy.service.connection.model.DatabaseConnection.PropertyInfo;
 
 // for security http\://docs.oracle.com/javase/jndi/tutorial/ldap/security/sasl.html
 // http://docs.oracle.com/javase/jndi/tutorial/ldap/security/src/Mutual.java
-public class LdapConnector extends Connector {
+class LdapConnector extends Connector {
 
-    public LdapConnector(ConnectorInfo driverInfo, DatabaseConnection ci) {
+    public LdapConnector(DriverInfo driverInfo, DatabaseConnection ci) {
         super(driverInfo, ci);
     }
 
@@ -21,14 +21,14 @@ public class LdapConnector extends Connector {
     public Dialect connect() {
         Hashtable<String,String> environment = new Hashtable<String, String>();
         
-        environment.put(Context.PROVIDER_URL, ci.getUrl());
+        environment.put(Context.PROVIDER_URL, databaseConnection.getUrl());
 
-        if (ci.getUsername()!=null && ci.getUsername().length()>0) {
-            environment.put(Context.SECURITY_PRINCIPAL,   ci.getUsername());
-            environment.put(Context.SECURITY_CREDENTIALS, ci.getPassword());
+        if (databaseConnection.getUsername()!=null && databaseConnection.getUsername().length()>0) {
+            environment.put(Context.SECURITY_PRINCIPAL,   databaseConnection.getUsername());
+            environment.put(Context.SECURITY_CREDENTIALS, databaseConnection.getPassword());
         }
         
-        for (PropertyInfo property : ci.getProperties()) {
+        for (PropertyInfo property : databaseConnection.getProperties()) {
             if (property.getValue()!=null && !property.getValue().trim().isEmpty()){
                 environment.put(property.getKey(), property.getValue().trim());
             }
@@ -38,7 +38,7 @@ public class LdapConnector extends Connector {
             final DirContext context = new InitialDirContext(environment);
             return new LdapDialect(context);
         } catch (Exception e) {
-            throw new ConnectionApiException("Cannot connect to "+ci.getName()+"("+e.getMessage()+")", e);
+            throw new ConnectionApiException("Cannot connect to "+databaseConnection.getName()+"("+e.getMessage()+")", e);
         }
     }
     
@@ -60,17 +60,6 @@ public class LdapConnector extends Connector {
             } catch (Exception e) {
                 throw new ConnectionApiException(e.getMessage(), e);
             }
-        }
-    }
-
-    @Override
-    public boolean testConnection() {
-        try {
-            Dialect dialect = connect();
-            dialect.close();
-            return true;
-        } catch (Exception e) {
-            return false;
         }
     }
 

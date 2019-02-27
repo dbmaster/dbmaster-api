@@ -1,7 +1,7 @@
 package com.branegy.dbmaster.connection;
 
 // TODO change setter visibility to package/protected
-public class ConnectorInfo {
+public class DriverInfo {
     /**
      * Connection will refer to it
      */
