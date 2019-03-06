@@ -48,14 +48,14 @@
         <dependency>
             <groupId>io.dbmaster</groupId>
             <artifactId>dbmaster-api</artifactId>
-            <version>1.12.0</version> <!-- release.version -->
+            <version>1.12.2-SNAPSHOT</version> <!-- release.version -->
             <classifier>compile</classifier>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>io.dbmaster</groupId>
             <artifactId>dbmaster-api</artifactId>
-            <version>1.12.0</version> <!-- release.version -->
+            <version>1.12.2-SNAPSHOT</version> <!-- release.version -->
             <scope>provided</scope>
         </dependency>
         <dependency>
