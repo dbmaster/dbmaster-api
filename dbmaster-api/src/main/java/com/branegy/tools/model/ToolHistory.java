@@ -109,7 +109,7 @@ public class ToolHistory extends BaseEntity{
     @Lob
     ToolConfig tool;
     
-    @Column(name="parameters",length=64*1024,updatable=false)
+    @Column(name="parameters",length=1024*1024,updatable=false)
     @Type(type=XML_TYPE)
     @Lob
     Map<String,Object> parameters;
