@@ -19,8 +19,7 @@ public abstract class IOUtils {
                 closeable.close();
             }
         } catch (Exception e) {
-            LoggerFactory.getLogger(IOUtils.class)
-                .warn("Cannot close", e);
+            LoggerFactory.getLogger(IOUtils.class).warn("Cannot close", e);
         }
     }
     
@@ -31,16 +30,12 @@ public abstract class IOUtils {
             BigInteger value = size;
             BigInteger mod = BigInteger.ZERO;
             int index = 0;
-            while(index < FILE_SIZE_UNITS.length) {
-                if (value.compareTo(ONE_KB)<0) {
-                    break;
-                }
+            while(index < FILE_SIZE_UNITS.length && value.compareTo(ONE_KB)>0) {
                 value = value.divide(ONE_KB);
                 mod = value.mod(ONE_KB);
                 index++;
             }
-            mod = mod.divide(THOUSAND);
-            int modInteger = Math.round(mod.floatValue()/10);
+            int modInteger = Math.round(mod.divide(THOUSAND).floatValue()/10);
             return value + (index == 0?" ":"," + modInteger+" ") + FILE_SIZE_UNITS[index];
         }
     }
