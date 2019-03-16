@@ -30,13 +30,13 @@ public abstract class IOUtils {
             BigInteger value = size;
             BigInteger mod = BigInteger.ZERO;
             int index = 0;
-            while(index < FILE_SIZE_UNITS.length && value.compareTo(ONE_KB)>0) {
+            while(index+1 < FILE_SIZE_UNITS.length && value.compareTo(ONE_KB)>0) {
                 value = value.divide(ONE_KB);
                 mod = value.mod(ONE_KB);
                 index++;
             }
             int modInteger = Math.round(mod.divide(THOUSAND).floatValue()/10);
-            return value + (index == 0?" ":"," + modInteger+" ") + FILE_SIZE_UNITS[index];
+            return value + (index == 0?" ":"." + modInteger+" ") + FILE_SIZE_UNITS[index];
         }
     }
     
