@@ -25,6 +25,12 @@ final class PrimitiveTypeWrapper {
     
     @Temporal(TemporalType.TIMESTAMP)
     private Date time;
+    
+    @Column(name="NOT_NULL_COLUMN",nullable=false)
+    @Deprecated 
+    // For Hibernate 4.3.7 HHH-7072 workaround
+    // org.hibernate.collection.internal.AbstractPersistentCollection.needsRecreate(CollectionPersister)
+    private int fakeNotNullColumn; 
 
     @SuppressWarnings("unused")
     private PrimitiveTypeWrapper() {
