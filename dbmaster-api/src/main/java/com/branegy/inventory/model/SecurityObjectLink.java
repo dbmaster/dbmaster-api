@@ -31,7 +31,7 @@ import com.branegy.persistence.custom.FetchAllObjectIdByProjectSql;
         query="from SecurityObjectLink where " + 
                 "project.id=:projectId and "
                     + "(sourceObject.id=:id or targetObject.id=:id) and "
-                    + "(:active = false or deleted = false)"),
+                    + "(not(:active) or deleted = false)"),
 })
 public class SecurityObjectLink extends BaseCustomEntity {
     public static final String QUERY_FIND_ALL_SECURITY_OBJECT_LINK_BY_PROJECT = "SecurityObjectLink.findAllByProject";
