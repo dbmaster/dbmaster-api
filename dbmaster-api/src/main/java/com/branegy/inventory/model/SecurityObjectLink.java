@@ -27,27 +27,34 @@ import com.branegy.persistence.custom.FetchAllObjectIdByProjectSql;
 @NamedQueries({
     @NamedQuery(name=SecurityObjectLink.QUERY_FIND_ALL_SECURITY_OBJECT_LINK_BY_PROJECT, 
         query="from SecurityObjectLink where project.id=:projectId"),
-    @NamedQuery(name=SecurityObjectLink.QUERY_FIND_ALL_SECURITY_OBJECT_LINK_BY_PROJECT_ID_ACTIVE, 
+    @NamedQuery(name=SecurityObjectLink.QUERY_FIND_ALL_SECURITY_OBJECT_LINK_BY_PROJECT_ID, 
         query="from SecurityObjectLink where " + 
-                "project.id=:projectId and "
-                    + "(sourceObject.id=:id or targetObject.id=:id) and "
-                    + "(:active = false or deleted = false)"),
+            "project.id=:projectId and "
+                + "(sourceObject.id=:id or targetObject.id=:id)"),
+    @NamedQuery(name=SecurityObjectLink.QUERY_FIND_ACTIVE_SECURITY_OBJECT_LINK_BY_PROJECT_ID, 
+        query="from SecurityObjectLink where " + 
+            "project.id=:projectId and "
+                + "(sourceObject.id=:id or targetObject.id=:id) and "
+                + "deleted = false and "
+                + "sourceObject.deleted=false and "
+                + "targetObject.deleted=false"),
 })
 public class SecurityObjectLink extends BaseCustomEntity {
     public static final String QUERY_FIND_ALL_SECURITY_OBJECT_LINK_BY_PROJECT = "SecurityObjectLink.findAllByProject";
-    public static final String QUERY_FIND_ALL_SECURITY_OBJECT_LINK_BY_PROJECT_ID_ACTIVE = "SecurityObjectLink.findAllByProjectIdActive";
+    public static final String QUERY_FIND_ALL_SECURITY_OBJECT_LINK_BY_PROJECT_ID = "SecurityObjectLink.findAllByProjectId";
+    public static final String QUERY_FIND_ACTIVE_SECURITY_OBJECT_LINK_BY_PROJECT_ID = "SecurityObjectLink.findActiveAllByProjectId";
     
     @ManyToOne(optional = false,fetch=FetchType.LAZY)
     @OnDelete(action = OnDeleteAction.CASCADE)
     @JoinColumn(name="project_id",nullable=false)
     Project project;
     
-    @ManyToOne(fetch=FetchType.LAZY)
+    @ManyToOne(fetch=FetchType.EAGER)
     @JoinColumn(name="source_object_id",nullable=false)
     @OnDelete(action=OnDeleteAction.CASCADE)
     SecurityObject sourceObject;
     
-    @ManyToOne(fetch=FetchType.LAZY)
+    @ManyToOne(fetch=FetchType.EAGER)
     @JoinColumn(name="target_object_id",nullable=false)
     @OnDelete(action=OnDeleteAction.CASCADE)
     SecurityObject targetObject;
