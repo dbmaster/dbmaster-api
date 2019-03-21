@@ -12,6 +12,7 @@ import com.branegy.inventory.model.DatabaseUsage;
 import com.branegy.inventory.model.Installation;
 import com.branegy.inventory.model.Job;
 import com.branegy.inventory.model.SecurityObject;
+import com.branegy.inventory.model.SecurityObjectLink;
 import com.branegy.inventory.model.Server;
 import com.branegy.persistence.BaseEntity;
 import com.branegy.service.core.QueryRequest;
@@ -148,4 +149,12 @@ public interface InventoryService {
 
     Slice<SecurityObject> getSecurityObjectList(String source, String serverName, String id, int limit);
     Slice<SecurityObject> getSecurityObjectList(QueryRequest request);
+    
+    SecurityObjectLink findSecurityObjectLinkById(long securityObjectLinkId);
+    SecurityObjectLink createSecurityObjectLink(SecurityObjectLink sol);
+    SecurityObjectLink updateSecurityObjectLink(SecurityObjectLink sol);
+    void deleteSecurityObjectLink(long securityObjectLinkId);
+    
+    List<SecurityObjectLink> getSecurityObjectLinkList();
+    List<SecurityObjectLink> getSecurityObjectLinkList(long securityObjectLinkId, boolean onlyActive);
 }

@@ -1,5 +1,6 @@
 package com.branegy.inventory.model;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.JoinColumn;
@@ -34,12 +35,14 @@ public class SecurityObject extends BaseCustomEntity {
     public static final String LAST_SYNC_DATE = "Last Sync Date";
     public static final String LAST_UPDATE_DATE = "Last Update Date";
     public static final String MEMBERS = "Members";
-    public static final String DELETED = "Deleted";
     
     @ManyToOne(optional = false,fetch=FetchType.LAZY)
     @OnDelete(action = OnDeleteAction.CASCADE)
     @JoinColumn(name="project_id")
     Project project;
+    
+    @Column(name="deleted")
+    boolean deleted;
 
     public final Project getProject() {
         return project;
@@ -73,8 +76,10 @@ public class SecurityObject extends BaseCustomEntity {
     }
     
     public boolean isDeleted() {
-        Boolean deleted = getCustomData(DELETED);
-        return deleted!=null && deleted;
+        return deleted;
+    }
+    public void setDeleted(boolean deleted) {
+        this.deleted = deleted;
     }
     
 }
