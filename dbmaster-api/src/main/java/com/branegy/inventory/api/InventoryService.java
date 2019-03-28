@@ -1,5 +1,6 @@
 package com.branegy.inventory.api;
 
+import java.util.Collection;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -15,6 +16,7 @@ import com.branegy.inventory.model.SecurityObject;
 import com.branegy.inventory.model.SecurityObjectLink;
 import com.branegy.inventory.model.Server;
 import com.branegy.persistence.BaseEntity;
+import com.branegy.service.connection.model.DatabaseConnection;
 import com.branegy.service.core.QueryRequest;
 import com.branegy.service.core.Slice;
 
@@ -23,6 +25,7 @@ import com.branegy.service.core.Slice;
 public interface InventoryService {
 
     SyncSession getDatabaseListDiff(Logger logger);
+    SyncSession getDatabaseListDiff(Logger logger, Collection<DatabaseConnection> connections);
 
     // ---- applications
     Slice<Application> getApplicationList(QueryRequest request);
