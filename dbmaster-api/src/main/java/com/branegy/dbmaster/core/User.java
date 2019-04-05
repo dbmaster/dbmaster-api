@@ -1,6 +1,7 @@
 package com.branegy.dbmaster.core;
 
 import static com.branegy.dbmaster.core.User.QUERY_USER_ALL;
+import static com.branegy.dbmaster.core.User.QUERY_USER_BY_API_KEY;
 import static com.branegy.dbmaster.core.User.QUERY_USER_BY_LOGIN_PASSWORD;
 import static com.branegy.dbmaster.core.User.QUERY_USER_BY_REMEMBER_ID;
 import static com.branegy.dbmaster.core.User.QUERY_USER_BY_USER_NAME;
@@ -33,11 +34,12 @@ import com.branegy.persistence.BaseEntity;
     @NamedQuery(name = QUERY_USER_ALL, query = "from User u"),
     @NamedQuery(name = QUERY_USER_BY_USER_NAME,query = "from User u where u.userName=:userName"),
     @NamedQuery(name = QUERY_USER_BY_LOGIN_PASSWORD, query = "from User u where " +
-            "u.userId=:login and u.password=:password and u.disabled = false"),
+            "u.userId=:login and u.password=:password"),
     @NamedQuery(name = QUERY_USER_BY_REMEMBER_ID, query = "from User u where " +
             "u.rememberId=lower(:rememberId) and u.disabled = false"),
     @NamedQuery(name = QUERY_USER_COUNT_ACTIVE_USER, query =
             "select count(u.id) from User u where u.disabled = false"),
+    @NamedQuery(name = QUERY_USER_BY_API_KEY, query = "from User u where u.apiKey = :apiKey"),
 })
 @Table(name="core_user", uniqueConstraints={
     @UniqueConstraint(columnNames={"USER_ID","OPENID_ALIAS","OPENID_URL"})
@@ -47,6 +49,7 @@ public class User extends BaseEntity {
     public static final String QUERY_USER_COUNT_ACTIVE_USER = "User.countActiveUser";
     public static final String QUERY_USER_BY_REMEMBER_ID = "User.findByRememberId";
     public static final String QUERY_USER_BY_LOGIN_PASSWORD = "User.findByLoginPassword";
+    public static final String QUERY_USER_BY_API_KEY = "User.findByApiKey";
     public static final String QUERY_USER_BY_USER_NAME = "User.findByUserName";
     public static final String QUERY_USER_ALL = "User.findAll";
 
@@ -67,6 +70,10 @@ public class User extends BaseEntity {
     @Column(name="password",length=255)
     @Size(max = 255)
     private String password;
+    
+    @Column(name="api_key",length=64)
+    @Size(max = 64)
+    private String apiKey;
 
     @Column(name="admin")
     private boolean admin;
@@ -224,5 +231,13 @@ public class User extends BaseEntity {
 
     public void setLastLogin(Date lastLogin) {
         this.lastLogin = lastLogin;
+    }
+
+    public String getApiKey() {
+        return apiKey;
+    }
+
+    public void setApiKey(String apiKey) {
+        this.apiKey = apiKey;
     }
 }
