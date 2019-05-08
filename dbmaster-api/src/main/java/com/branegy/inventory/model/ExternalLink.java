@@ -26,6 +26,9 @@ import com.branegy.persistence.custom.FetchAllObjectIdByProjectSql;
         "where ((el.application is not null) and (el.application.project_id=:projectId))")
 public class ExternalLink extends BaseCustomEntity{
     public static final String URL = "URL";
+    public static final String LINK_TEXT = "LinkText";
+    public static final String LINK_TYPE = "LinkType";
+    public static final String COMMENTS = "Comments";
 
     @ManyToOne(fetch=FetchType.LAZY)
     @JoinColumn(name="application_id",updatable=false)
