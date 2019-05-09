@@ -216,6 +216,10 @@ public class DatabaseConnection extends BaseCustomEntity {
     @OnDelete(action = OnDeleteAction.CASCADE)
     @JoinColumn(name="project_id")
     private Project project;
+    
+    @Access(AccessType.PROPERTY)
+    @Column(name="disabled", nullable=false)
+    private boolean disabled;
 
     public String getName() {
         return name;
@@ -288,5 +292,13 @@ public class DatabaseConnection extends BaseCustomEntity {
 
     public void setProject(Project project) {
         this.project = project;
+    }
+
+    public boolean isDisabled() {
+        return disabled;
+    }
+
+    public void setDisabled(boolean disabled) {
+        this.disabled = disabled;
     }
 }
