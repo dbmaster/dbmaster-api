@@ -1,8 +1,5 @@
 package com.branegy.scripting;
 
-import groovy.lang.GroovyClassLoader;
-import groovy.lang.GroovyCodeSource;
-
 import java.io.File;
 import java.io.InputStream;
 import java.lang.reflect.Method;
@@ -21,6 +18,9 @@ import org.codehaus.groovy.jsr223.GroovyScriptEngineImpl;
 import com.branegy.service.core.exception.ApiException;
 import com.branegy.service.core.exception.IllegalStateApiException;
 import com.branegy.util.DataDirHelper;
+
+import groovy.lang.GroovyClassLoader;
+import groovy.lang.GroovyCodeSource;
 
 public class ScriptExecutor {
     protected final Map<String, Object> variables = new HashMap<String,Object>();
@@ -115,7 +115,6 @@ public class ScriptExecutor {
     public static Class<?> parseClass(ClassLoader parentCL, String classpath, File file) throws Exception {
         CompilerConfiguration compilerConfig = new CompilerConfiguration();
         compilerConfig.setClasspath(classpath);
-        @SuppressWarnings("resource")
         GroovyClassLoader loader = new GroovyClassLoader(parentCL, compilerConfig);
         Class<?> groovyClass = loader.parseClass(file);
         return groovyClass;

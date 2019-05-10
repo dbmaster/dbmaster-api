@@ -6,5 +6,5 @@ package com.branegy.dbmaster.connection;
  */
 public interface Dialect extends AutoCloseable{
     @Override
-    void close(); // do not throw any exception
+    void close(); // do not throw any exceptions
 }
