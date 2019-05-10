@@ -1,6 +1,9 @@
 package com.branegy.util;
 
 import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 
 import org.slf4j.LoggerFactory;
 
@@ -42,5 +45,25 @@ public abstract class IOUtils {
     
     public static String toFileSize(String size) {
         return toFileSize(size == null? null : new BigInteger(size));
+    }
+    
+    public static <T> ArrayList<T> toArrayList(Collection<T> list){
+        if (list == null) {
+            return null;
+        } else if (list instanceof ArrayList) {
+            return new ArrayList<>(list);
+        } else {
+            return (ArrayList<T>) list;
+        }
+    }
+    
+    
+    @SafeVarargs
+    public static <T> ArrayList<T> toArrayList(T... list){
+        if (list == null) {
+            return null;
+        } else {
+            return new ArrayList<>(Arrays.asList(list));
+        }
     }
 }
