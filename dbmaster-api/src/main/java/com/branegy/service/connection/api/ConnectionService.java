@@ -26,6 +26,7 @@ public interface ConnectionService {
     void deleteConnection(DatabaseConnection connection);
 
     List<DatabaseConnection> getConnectionList();
+    Slice<DatabaseConnection> getConnectionSlice(QueryRequest params);
   
     
     // TODO (Slava) review this function below

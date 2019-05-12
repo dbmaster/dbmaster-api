@@ -1,10 +1,11 @@
 package com.branegy.service.connection.model;
 
 import static com.branegy.service.connection.model.DatabaseConnection.QUERY_CONNECTION_FIND;
-import static com.branegy.service.connection.model.DatabaseConnection.QUERY_CONNECTION_FIND_ALL_ENABLED;
-import static com.branegy.service.connection.model.DatabaseConnection.QUERY_CONNECTION_FIND_ALL_ENABLED_BY_PROJECT;
+import static com.branegy.service.connection.model.DatabaseConnection.QUERY_CONNECTION_FIND_ALL;
+import static com.branegy.service.connection.model.DatabaseConnection.QUERY_CONNECTION_FIND_ALL_BY_PROJECT;
+import static com.branegy.service.connection.model.DatabaseConnection.QUERY_CONNECTION_FIND_ALL_COUNT;
 import static com.branegy.service.connection.model.DatabaseConnection.QUERY_CONNECTION_FIND_ALL_ENABLED_COUNT;
-import static com.branegy.service.connection.model.DatabaseConnection.QUERY_CONNECTION_FIND_ALL_ENABLED_PAGE_COUNT;
+import static com.branegy.service.connection.model.DatabaseConnection.QUERY_CONNECTION_FIND_ALL_PAGE_COUNT;
 import static com.branegy.service.connection.model.DatabaseConnection.QUERY_CONNECTION_FIND_FULL_NAME;
 
 import java.io.Serializable;
@@ -49,16 +50,16 @@ import com.branegy.persistence.xml.XmlBlobArray;
 
 @Entity
 @NamedQueries({
-    @NamedQuery(name = QUERY_CONNECTION_FIND_ALL_ENABLED_BY_PROJECT, query = "select c from DatabaseConnection c " +
-            "where c.project.id=:projectId and c.disabled = false"),
-    @NamedQuery(name = QUERY_CONNECTION_FIND_ALL_ENABLED, query = "from DatabaseConnection c " +
-            "where c.disabled = false "+
+    @NamedQuery(name = QUERY_CONNECTION_FIND_ALL_BY_PROJECT, query = "select c from DatabaseConnection c " +
+            "where c.project.id=:projectId"),
+    @NamedQuery(name = QUERY_CONNECTION_FIND_ALL, query = "from DatabaseConnection c " +
             "order by c.project.name asc, c.name asc"),
+    @NamedQuery(name = QUERY_CONNECTION_FIND_ALL_COUNT, query = "select count(c) from DatabaseConnection c"),
     @NamedQuery(name = QUERY_CONNECTION_FIND_ALL_ENABLED_COUNT, query = "select count(c) from DatabaseConnection c "+
             "where c.disabled = false"),
-    @NamedQuery(name = QUERY_CONNECTION_FIND_ALL_ENABLED_PAGE_COUNT,
+    @NamedQuery(name = QUERY_CONNECTION_FIND_ALL_PAGE_COUNT,
             query = "select count(c) from DatabaseConnection c " +
-                "where (c.project.name || '.' || c.name < :query) and c.disabled = false"),
+                "where c.project.name || '.' || c.name < :query"),
     @NamedQuery(name = QUERY_CONNECTION_FIND, query = "select c from DatabaseConnection c " +
             "where upper(c.name)=upper(:name) and c.project.id=:projectId"),
     @NamedQuery(name = QUERY_CONNECTION_FIND_FULL_NAME,
@@ -74,12 +75,11 @@ import com.branegy.persistence.xml.XmlBlobArray;
 @FetchAllObjectIdByProjectSql("select id from db_connection where project_id=:projectId")
 public class DatabaseConnection extends BaseCustomEntity {
     public static final String QUERY_CONNECTION_FIND = "Connection.find";
-    public static final String QUERY_CONNECTION_FIND_ALL_ENABLED_BY_PROJECT =
-                                    "Connection.findAllEnabledByProject";
-    public static final String QUERY_CONNECTION_FIND_ALL_ENABLED = "Connection.findAllEnabled";
+    public static final String QUERY_CONNECTION_FIND_ALL_BY_PROJECT = "Connection.findAllByProject";
+    public static final String QUERY_CONNECTION_FIND_ALL = "Connection.findAll";
+    public static final String QUERY_CONNECTION_FIND_ALL_COUNT = "Connection.findAllCount";
     public static final String QUERY_CONNECTION_FIND_ALL_ENABLED_COUNT = "Connection.findAllEnabledCount";
-    public static final String QUERY_CONNECTION_FIND_ALL_ENABLED_PAGE_COUNT =
-                                    "Connection.findAllEnabledPageCount";
+    public static final String QUERY_CONNECTION_FIND_ALL_PAGE_COUNT = "Connection.findAllPageCount";
     public static final String QUERY_CONNECTION_FIND_FULL_NAME = "Connection.findByFullName";
     
     public static final String LAST_SYNC = "LastSync";

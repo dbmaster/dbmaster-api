@@ -30,6 +30,22 @@ public class CustomCriterion implements Serializable {
         Double fraction;
         Long longValue;
         Date date;
+        
+        public final String getText() {
+            return text;
+        }
+        public final Boolean getBool() {
+            return bool;
+        }
+        public final Double getFraction() {
+            return fraction;
+        }
+        public final Long getLongValue() {
+            return longValue;
+        }
+        public final Date getDate() {
+            return date;
+        }
     }
 
     /**
