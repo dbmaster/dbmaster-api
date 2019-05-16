@@ -40,4 +40,6 @@ public interface ToolService {
     ToolLogReader getToolLog(long executionId);
     
     Map<String,Object> validateToolParameters(ToolConfig tool, Map<String, Object> parameters);
+    
+    List<ToolHistory> pruneToolHistory(String toolId, int beforeDays);
 }

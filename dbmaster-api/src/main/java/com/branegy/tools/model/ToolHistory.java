@@ -2,7 +2,8 @@ package com.branegy.tools.model;
 
 import static com.branegy.tools.model.ToolHistory.DELETE_PREPARED_JOB;
 import static com.branegy.tools.model.ToolHistory.FAIL_RUNNING_JOB;
-import static com.branegy.tools.model.ToolHistory.XML_TYPE;
+import static com.branegy.tools.model.ToolHistory.PRUNE_PROJECT_TOOLID_UPTODATE;
+import static com.branegy.tools.model.ToolHistory.XML_IMMUTABLE_TYPE;
 
 import java.util.Date;
 import java.util.Map;
@@ -32,14 +33,14 @@ import org.hibernate.annotations.TypeDef;
 import com.branegy.dbmaster.core.Project;
 import com.branegy.dbmaster.core.User;
 import com.branegy.persistence.BaseEntity;
-import com.branegy.persistence.xml.XmlBlobType;
+import com.branegy.persistence.xml.ImmutableXmlBlobType;
 import com.branegy.tools.api.ExportType;
 
 
 @Entity
 @Table(name="dbm_tool_history")
 @Cache(usage=CacheConcurrencyStrategy.READ_WRITE)
-@TypeDef(name=XML_TYPE,typeClass=XmlBlobType.class,parameters={
+@TypeDef(name=XML_IMMUTABLE_TYPE,typeClass=ImmutableXmlBlobType.class,parameters={
     // for tool config alias
     @Parameter(name = "alias.tool", value = "tool,com.branegy.tools.model.ToolConfig"),
     @Parameter(name = "alias.parameter", value = "parameter,com.branegy.tools.model.Parameter"),
@@ -78,13 +79,18 @@ import com.branegy.tools.api.ExportType;
         + "h.status = com.branegy.tools.model.ToolHistory$Status.RUNNING"),
     @NamedQuery(name = DELETE_PREPARED_JOB, query = "delete from ToolHistory h "
             + "where "
-            + "h.status = com.branegy.tools.model.ToolHistory$Status.PREPARED")
+            + "h.status = com.branegy.tools.model.ToolHistory$Status.PREPARED"),
+    @NamedQuery(name = PRUNE_PROJECT_TOOLID_UPTODATE, query = "from ToolHistory h where "
+            + "h.project.id = :projectId and h.finish < :untilDate and "
+            + "(h.status='OK' or h.status='FAILED' or h.status='CANCELLED') and "
+            + "(:toolId is null or h.toolId=:toolId or h.parentToolId=:toolId)")
 })
 public class ToolHistory extends BaseEntity{
     public static final String DELETE_PREPARED_JOB = "ToolHistory.deletePreparedJob";
     public static final String FAIL_RUNNING_JOB = "ToolHistory.failRunningJob";
+    public static final String PRUNE_PROJECT_TOOLID_UPTODATE = "ToolHistory.pruneForProjectToolIdUpDate";
 
-    static final String XML_TYPE = "to-xml";
+    static final String XML_IMMUTABLE_TYPE = "to-immutable-xml";
     
     /**
      *  bundle version for processing
@@ -105,12 +111,12 @@ public class ToolHistory extends BaseEntity{
     String toolVersion;
     
     @Column(name="tool",length=64*1024,nullable=false, updatable=false)
-    @Type(type=XML_TYPE)
+    @Type(type=XML_IMMUTABLE_TYPE)
     @Lob
     ToolConfig tool;
     
     @Column(name="parameters",length=1024*1024,updatable=false)
-    @Type(type=XML_TYPE)
+    @Type(type=XML_IMMUTABLE_TYPE)
     @Lob
     Map<String,Object> parameters;
     
