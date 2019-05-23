@@ -4,6 +4,7 @@ import static com.branegy.service.connection.model.DatabaseConnection.QUERY_CONN
 import static com.branegy.service.connection.model.DatabaseConnection.QUERY_CONNECTION_FIND_ALL;
 import static com.branegy.service.connection.model.DatabaseConnection.QUERY_CONNECTION_FIND_ALL_BY_PROJECT;
 import static com.branegy.service.connection.model.DatabaseConnection.QUERY_CONNECTION_FIND_ALL_COUNT;
+import static com.branegy.service.connection.model.DatabaseConnection.QUERY_CONNECTION_FIND_ALL_ENABLED_BY_PROJECT;
 import static com.branegy.service.connection.model.DatabaseConnection.QUERY_CONNECTION_FIND_ALL_ENABLED_COUNT;
 import static com.branegy.service.connection.model.DatabaseConnection.QUERY_CONNECTION_FIND_ALL_PAGE_COUNT;
 import static com.branegy.service.connection.model.DatabaseConnection.QUERY_CONNECTION_FIND_FULL_NAME;
@@ -52,6 +53,8 @@ import com.branegy.persistence.xml.XmlBlobArray;
 @NamedQueries({
     @NamedQuery(name = QUERY_CONNECTION_FIND_ALL_BY_PROJECT, query = "select c from DatabaseConnection c " +
             "where c.project.id=:projectId"),
+    @NamedQuery(name = QUERY_CONNECTION_FIND_ALL_ENABLED_BY_PROJECT, query = "select c from DatabaseConnection c " +
+            "where c.project.id=:projectId and c.disabled = false"),
     @NamedQuery(name = QUERY_CONNECTION_FIND_ALL, query = "from DatabaseConnection c " +
             "order by c.project.name asc, c.name asc"),
     @NamedQuery(name = QUERY_CONNECTION_FIND_ALL_COUNT, query = "select count(c) from DatabaseConnection c"),
@@ -76,6 +79,7 @@ import com.branegy.persistence.xml.XmlBlobArray;
 public class DatabaseConnection extends BaseCustomEntity {
     public static final String QUERY_CONNECTION_FIND = "Connection.find";
     public static final String QUERY_CONNECTION_FIND_ALL_BY_PROJECT = "Connection.findAllByProject";
+    public static final String QUERY_CONNECTION_FIND_ALL_ENABLED_BY_PROJECT = "Connection.findAllEnabledByProject";
     public static final String QUERY_CONNECTION_FIND_ALL = "Connection.findAll";
     public static final String QUERY_CONNECTION_FIND_ALL_COUNT = "Connection.findAllCount";
     public static final String QUERY_CONNECTION_FIND_ALL_ENABLED_COUNT = "Connection.findAllEnabledCount";
