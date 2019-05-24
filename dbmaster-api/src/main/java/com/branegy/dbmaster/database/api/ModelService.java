@@ -1,9 +1,11 @@
 package com.branegy.dbmaster.database.api;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
 import com.branegy.dbmaster.core.Project;
+import com.branegy.dbmaster.custom.CustomFieldConfig;
 import com.branegy.dbmaster.model.Column;
 import com.branegy.dbmaster.model.DatabaseObject;
 import com.branegy.dbmaster.model.Model;
@@ -118,4 +120,6 @@ public interface ModelService {
 
     SyncSession compareObjects(DatabaseObject<?> source, DatabaseObject<?> target);
     SyncSession compareObjects(DatabaseObject<?> source, DatabaseObject<?> target, Map<String,Object> params);
+    
+    Collection<CustomFieldConfig> createExtendedPropertiesConfigs(Model model);
 }
