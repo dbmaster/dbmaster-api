@@ -1,13 +1,13 @@
 package com.branegy.service.connection.model;
 
 import static com.branegy.service.connection.model.DatabaseConnection.QUERY_CONNECTION_FIND;
-import static com.branegy.service.connection.model.DatabaseConnection.QUERY_CONNECTION_FIND_ALL;
 import static com.branegy.service.connection.model.DatabaseConnection.QUERY_CONNECTION_FIND_ALL_BY_PROJECT;
-import static com.branegy.service.connection.model.DatabaseConnection.QUERY_CONNECTION_FIND_ALL_COUNT;
 import static com.branegy.service.connection.model.DatabaseConnection.QUERY_CONNECTION_FIND_ALL_ENABLED_BY_PROJECT;
 import static com.branegy.service.connection.model.DatabaseConnection.QUERY_CONNECTION_FIND_ALL_ENABLED_COUNT;
 import static com.branegy.service.connection.model.DatabaseConnection.QUERY_CONNECTION_FIND_ALL_PAGE_COUNT;
 import static com.branegy.service.connection.model.DatabaseConnection.QUERY_CONNECTION_FIND_FULL_NAME;
+import static com.branegy.service.connection.model.DatabaseConnection.QUERY_CONNECTION_FULL_LIST;
+import static com.branegy.service.connection.model.DatabaseConnection.QUERY_CONNECTION_FULL_LIST_COUNT;
 
 import java.io.Serializable;
 import java.math.BigInteger;
@@ -55,9 +55,11 @@ import com.branegy.persistence.xml.XmlBlobArray;
             "where c.project.id=:projectId"),
     @NamedQuery(name = QUERY_CONNECTION_FIND_ALL_ENABLED_BY_PROJECT, query = "select c from DatabaseConnection c " +
             "where c.project.id=:projectId and c.disabled = false"),
-    @NamedQuery(name = QUERY_CONNECTION_FIND_ALL, query = "from DatabaseConnection c " +
+    @NamedQuery(name = QUERY_CONNECTION_FULL_LIST, query = "from DatabaseConnection c " +
+            "where c.disabled = false and (:filter is null or (c.project.name || '.' || c.name) LIKE :filter) "+
             "order by c.project.name asc, c.name asc"),
-    @NamedQuery(name = QUERY_CONNECTION_FIND_ALL_COUNT, query = "select count(c) from DatabaseConnection c"),
+    @NamedQuery(name = QUERY_CONNECTION_FULL_LIST_COUNT, query = "select count(c) from DatabaseConnection c " +
+            "where c.disabled = false and (:filter is null or (c.project.name || '.' || c.name) LIKE :filter)"),
     @NamedQuery(name = QUERY_CONNECTION_FIND_ALL_ENABLED_COUNT, query = "select count(c) from DatabaseConnection c "+
             "where c.disabled = false"),
     @NamedQuery(name = QUERY_CONNECTION_FIND_ALL_PAGE_COUNT,
@@ -80,8 +82,8 @@ public class DatabaseConnection extends BaseCustomEntity {
     public static final String QUERY_CONNECTION_FIND = "Connection.find";
     public static final String QUERY_CONNECTION_FIND_ALL_BY_PROJECT = "Connection.findAllByProject";
     public static final String QUERY_CONNECTION_FIND_ALL_ENABLED_BY_PROJECT = "Connection.findAllEnabledByProject";
-    public static final String QUERY_CONNECTION_FIND_ALL = "Connection.findAll";
-    public static final String QUERY_CONNECTION_FIND_ALL_COUNT = "Connection.findAllCount";
+    public static final String QUERY_CONNECTION_FULL_LIST = "Connection.findFullList";
+    public static final String QUERY_CONNECTION_FULL_LIST_COUNT = "Connection.findFullListCount";
     public static final String QUERY_CONNECTION_FIND_ALL_ENABLED_COUNT = "Connection.findAllEnabledCount";
     public static final String QUERY_CONNECTION_FIND_ALL_PAGE_COUNT = "Connection.findAllPageCount";
     public static final String QUERY_CONNECTION_FIND_FULL_NAME = "Connection.findByFullName";
