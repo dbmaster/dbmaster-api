@@ -146,33 +146,35 @@ public abstract class SqlSearchHelper {
     }
 
     private static String buildCustomCriteria(CustomCriterion criterion, int index, boolean freeText) {
-        StringBuilder builder = new StringBuilder(128);
+        StringBuilder sb = new StringBuilder(128);
         Operator op = criterion.getOperator();
         
         CustomCriterion.ParsedValue value = criterion.getValue();
         if (value.text!=null) {
             if (!criterion.isStrictText() && op==Operator.EQ) {
-                builder.append("upper(m"+index+".text) like upper('%'+:"+TEXT+index+"+'%') escape '!' or ");
+                sb.append("upper(m"+index+".text) like upper('%'+:"+TEXT+index+"+'%') escape '!' or ");
+            } else if (!criterion.isStrictText() && op==Operator.NEQ) {    
+                sb.append("upper(m"+index+".text) not like upper('%'+:"+TEXT+index+"+'%') escape '!' or ");
             } else {
-                builder.append("upper(m").append(index).append(".text) ")
-                .append(op).append("upper(:"+TEXT+index+") or ");
+                sb.append("upper(m").append(index).append(".text) ")
+                  .append(op).append("upper(:"+TEXT+index+") or ");
             }
         }
 
         if (value.bool!=null) {
-            builder.append("m"+index+".bool "+op+" :"+BOOL+index+" or ");
+            sb.append("m"+index+".bool "+op+" :"+BOOL+index+" or ");
         }
         if (value.fraction!=null) {
-            builder.append("m"+index+".fractional "+op+" :"+FRACTION+index+" or ");
+            sb.append("m"+index+".fractional "+op+" :"+FRACTION+index+" or ");
         }
         if (value.longValue!=null) {
-            builder.append("m"+index+".integer "+op+" :"+INTEGER+index+" or ");
+            sb.append("m"+index+".integer "+op+" :"+INTEGER+index+" or ");
         }
         if (value.date!=null) {
-            builder.append("m"+index+".time "+op+" :"+TIME+index+" or ");
+            sb.append("m"+index+".time "+op+" :"+TIME+index+" or ");
         }
-        builder.delete(builder.length()-3,builder.length());
-        return builder.toString();
+        sb.delete(sb.length()-3,sb.length());
+        return sb.toString();
     }
     
     protected final void generateSQL(SqlBuilder sql) {
@@ -344,7 +346,7 @@ public abstract class SqlSearchHelper {
         for (Parameter<?> p:query.getParameters()){
             String name = p.getName();
             Matcher m = pattern.matcher(name);
-            // TODO document: what parameters should be skipped?
+            // skipping parameters that are not set by SqlSearchHelper
             if (!m.matches()) {
                 continue;
             }
