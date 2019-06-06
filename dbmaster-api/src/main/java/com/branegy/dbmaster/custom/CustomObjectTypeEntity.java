@@ -32,10 +32,13 @@ import com.branegy.persistence.BaseEntity;
     @NamedQuery(name=QUERY_FIND_BY_PROJECT_NAME,
             query="from CustomObjectTypeEntity c where c.project=:project and objectName=:name"),
     @NamedQuery(name=QUERY_FIND_BY_PROJECT_WITH_KEY,
-            query="select c, max(f.key) as pk from CustomFieldConfig f "
-                    + "JOIN f.customObjectType c "
-                    + "where c.project=:project "
-                    + "group by c.id ")
+            query="select c, (select max(f.key) "
+                                + "from CustomFieldConfig f "
+                                + "where f.customObjectType = c and f.project = c.project) as pk "
+                    + "from CustomObjectTypeEntity c "
+                    + "where c.project=:project"
+            
+            )
 })
 /*@NamedNativeQueries({
     @NamedNativeQuery(name=QUERY_FIND_BY_PROJECT_WITH_KEY, query="select t.id,t.updated,t.created,"
