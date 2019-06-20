@@ -16,7 +16,7 @@ import java.util.Map.Entry;
 import java.util.Properties;
 
 import org.hibernate.HibernateException;
-import org.hibernate.engine.spi.SessionImplementor;
+import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.usertype.ParameterizedType;
 import org.hibernate.usertype.UserType;
 import org.slf4j.Logger;
@@ -83,7 +83,7 @@ public class XmlBlobType implements UserType,ParameterizedType {
 
     @Override
     public Object nullSafeGet(ResultSet rs, String[] names,
-            SessionImplementor si, Object owner) throws SQLException {
+            SharedSessionContractImplementor si, Object owner) throws SQLException {
         InputStream reader = rs.getBinaryStream(names[0]);
         try {
             if (reader == null || reader.available()==0) {
@@ -99,7 +99,7 @@ public class XmlBlobType implements UserType,ParameterizedType {
 
     @Override
     public void nullSafeSet(PreparedStatement st, Object value, int index,
-            SessionImplementor si) throws SQLException {
+            SharedSessionContractImplementor si) throws SQLException {
         if (value != null) {
             byte[] str = xstream.toXML(value).getBytes(Charsets.UTF_8);
             ByteArrayInputStream r = new ByteArrayInputStream(str);

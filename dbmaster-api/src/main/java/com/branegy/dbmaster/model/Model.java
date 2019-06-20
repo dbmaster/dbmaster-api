@@ -123,8 +123,8 @@ public class Model extends DatabaseObject<Model> {
     @NotNull
     String version;
     
-    @Formula("lastSynch = (select max(m.lastSynch) from db_model m where m.name = name " +
-            "and m.project_id = project_id)")
+    @Formula("(CASE WHEN lastSynch = (select max(m.lastSynch) from db_model m where m.name = name " +
+            "and m.project_id = project_id) THEN 1 ELSE 0 END)")
     boolean actualVersion;
     
     public Project getProject() {

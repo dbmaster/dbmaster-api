@@ -10,7 +10,7 @@ import com.branegy.service.core.search.SqlSearchHelper.OrderBy;
 /**
  * This object is not thread-safe!
  */
-public class QueryRequest {
+public final class QueryRequest {
     private int offset = 0;
     
     /**
@@ -29,6 +29,8 @@ public class QueryRequest {
      * if not specified - default load will be used
      */
     private String fetchPath;
+    
+    private boolean calculateTotalSize = true;
     
     // converted filters
     private List<CustomCriterion> criterionList = new ArrayList<CustomCriterion>();
@@ -106,5 +108,13 @@ public class QueryRequest {
             throw new IllegalArgumentException("Limit must be positive number, or null for unlimit");
         }
         this.limit = limit;
+    }
+
+    public boolean isCalculateTotalSize() {
+        return calculateTotalSize;
+    }
+
+    public void setCalculateTotalSize(boolean calculateTotalSize) {
+        this.calculateTotalSize = calculateTotalSize;
     }
 }
