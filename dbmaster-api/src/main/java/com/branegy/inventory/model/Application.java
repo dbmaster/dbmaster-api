@@ -3,7 +3,15 @@ package com.branegy.inventory.model;
 import static com.branegy.inventory.model.Application.QUERY_APPLICATION_ALL;
 import static com.branegy.inventory.model.Application.QUERY_APPLICATION_BY_DATABASE;
 import static com.branegy.inventory.model.Application.QUERY_COUNT_APPLICATION_BY_DATABASE;
+import static com.branegy.persistence.custom.EmbeddableKey.CLAZZ_COLUMN;
+import static com.branegy.persistence.custom.EmbeddableKey.ENTITY_ID_COLUMN;
 
+import java.util.SortedMap;
+
+import javax.persistence.Access;
+import javax.persistence.AccessType;
+import javax.persistence.CollectionTable;
+import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.JoinColumn;
@@ -12,14 +20,19 @@ import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.Table;
 
+import org.hibernate.annotations.BatchSize;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
+import org.hibernate.annotations.SortNatural;
+import org.hibernate.annotations.Where;
 
 import com.branegy.dbmaster.core.Project;
 import com.branegy.persistence.custom.BaseCustomEntity;
 import com.branegy.persistence.custom.CustomFieldDiscriminator;
+import com.branegy.persistence.custom.EmbeddableKey;
+import com.branegy.persistence.custom.EmbeddablePrimitiveContainer;
 import com.branegy.persistence.custom.FetchAllObjectIdByProjectSql;
 
 @Entity
@@ -33,7 +46,7 @@ import com.branegy.persistence.custom.FetchAllObjectIdByProjectSql;
         query = "select count(du.application.id) from DatabaseUsage du " +
     "where du.database.id=:databaseId and du.database.project.id=:project_id")
 })
-@CustomFieldDiscriminator("Application")
+@CustomFieldDiscriminator(Application.CUSTOM_FIELD_DISCRIMINATOR)
 @Table(name="inv_application")
 @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 @FetchAllObjectIdByProjectSql("select id from inv_application where project_id=:projectId")
@@ -55,6 +68,7 @@ import com.branegy.persistence.custom.FetchAllObjectIdByProjectSql;
  *
  */
 public class Application extends BaseCustomEntity {
+    static final String CUSTOM_FIELD_DISCRIMINATOR = "Application";
     public static final String QUERY_APPLICATION_ALL = "Application.findAll";
     public static final String QUERY_APPLICATION_BY_DATABASE = "Application.findByDatabase";
     public static final String QUERY_COUNT_APPLICATION_BY_DATABASE = "Application.findCountByDatabase";
@@ -82,5 +96,16 @@ public class Application extends BaseCustomEntity {
     
     public void setApplicationName(String applicationName){
         setCustomData(APPLICATION_NAME,applicationName);
+    }
+
+    @Override
+    @Access(AccessType.PROPERTY)
+    @ElementCollection(fetch=FetchType.EAGER)
+    @CollectionTable(name=BaseCustomEntity.CUSTOMFIELD_VALUE_TABLE, joinColumns = {@JoinColumn(name=ENTITY_ID_COLUMN)})
+    @BatchSize(size = 100)
+    @Where(clause=CLAZZ_COLUMN+" = '"+CUSTOM_FIELD_DISCRIMINATOR+"'")
+    @SortNatural
+    protected SortedMap<EmbeddableKey, EmbeddablePrimitiveContainer> getMap() {
+        return getInnerCustomMap();
     }
 }

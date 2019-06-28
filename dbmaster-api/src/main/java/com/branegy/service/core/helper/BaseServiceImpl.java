@@ -12,9 +12,9 @@ import javax.persistence.Query;
 import javax.persistence.RollbackException;
 import javax.persistence.Table;
 
-import org.hibernate.SQLQuery;
 import org.hibernate.annotations.QueryHints;
 import org.hibernate.exception.ConstraintViolationException;
+import org.hibernate.query.NativeQuery;
 
 import com.google.common.base.Preconditions;
 
@@ -243,7 +243,7 @@ public abstract class BaseServiceImpl {
     }
     
     public static void disableInvalidateCache(Query query){
-        query.unwrap(SQLQuery.class).addSynchronizedQuerySpace("");
+        query.unwrap(NativeQuery.class).addSynchronizedQuerySpace("");
     }
     
     public static <T extends BaseEntity> T getUnchangedObject(EntityManager em,Class<T> clazz, T object){

@@ -1,12 +1,10 @@
 package com.branegy.dbmaster.model;
 
+import javax.persistence.Cacheable;
 import javax.persistence.DiscriminatorValue;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
-
-import org.hibernate.annotations.Cache;
-import org.hibernate.annotations.CacheConcurrencyStrategy;
 
 import com.branegy.persistence.custom.CustomFieldDiscriminator;
 import com.branegy.persistence.custom.FetchAllObjectIdByProjectSql;
@@ -14,7 +12,7 @@ import com.branegy.persistence.custom.FetchAllObjectIdByProjectSql;
 @Entity
 @CustomFieldDiscriminator("Parameter")
 @DiscriminatorValue("Parameter")
-@Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+@Cacheable
 @FetchAllObjectIdByProjectSql("select c.id from db_column c "+
         "inner join db_model_object mo on c.owner_id = mo.id "+
         "inner join db_model m on m.id = mo.model_id "+

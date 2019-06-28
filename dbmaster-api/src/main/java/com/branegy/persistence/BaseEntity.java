@@ -25,7 +25,7 @@ public abstract class BaseEntity implements IEntity {
     private static final int CREATE_AUTHOR_LENGTH = 15;
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name="id",updatable=false)
     private long id;
 

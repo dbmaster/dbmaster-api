@@ -10,6 +10,7 @@ import java.util.Date;
 // key =
 // free
 @SuppressWarnings("serial")
+@Deprecated
 public class CustomCriterion implements Serializable {
     // TODO #1874 get rid of this format
     // Single date format should be specified in configuration

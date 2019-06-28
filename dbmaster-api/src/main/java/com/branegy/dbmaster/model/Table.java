@@ -1,27 +1,42 @@
 package com.branegy.dbmaster.model;
 
+import static com.branegy.persistence.custom.EmbeddableKey.CLAZZ_COLUMN;
+import static com.branegy.persistence.custom.EmbeddableKey.ENTITY_ID_COLUMN;
+
 import java.util.ArrayList;
 import java.util.List;
+import java.util.SortedMap;
 
+import javax.persistence.Access;
+import javax.persistence.AccessType;
+import javax.persistence.Cacheable;
+import javax.persistence.CollectionTable;
 import javax.persistence.DiscriminatorValue;
+import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.JoinColumn;
 
 import org.hibernate.annotations.BatchSize;
-import org.hibernate.annotations.Cache;
-import org.hibernate.annotations.CacheConcurrencyStrategy;
+import org.hibernate.annotations.SortNatural;
+import org.hibernate.annotations.Where;
 
 import com.branegy.persistence.custom.CustomFieldDiscriminator;
+import com.branegy.persistence.custom.EmbeddableKey;
+import com.branegy.persistence.custom.EmbeddablePrimitiveContainer;
 import com.branegy.persistence.custom.FetchAllObjectIdByProjectSql;
 
 @Entity
-@CustomFieldDiscriminator("Table")
+@CustomFieldDiscriminator(Table.CUSTOM_FIELD_DISCRIMINATOR)
 @DiscriminatorValue("0Tabl")
-@Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+@Cacheable
 @BatchSize(size=100)
 @FetchAllObjectIdByProjectSql("select mo.id from db_model_object mo "+
         "inner join db_model m on m.id = mo.model_id "+
         "where m.project_id = :projectId and dtype='0Tabl'")
 public class Table extends ModelObject {
+    static final String CUSTOM_FIELD_DISCRIMINATOR = "Table";
+    
     public static final String DESCRIPTION = "Description";
     public static final String ROWS = "Rows";
 
@@ -131,5 +146,16 @@ public class Table extends ModelObject {
 
     public Trigger getTrigger(String triggerName) {
         return findByName(triggers, triggerName, "triggerName");
+    }
+    
+    @Override
+    @Access(AccessType.PROPERTY)
+    @ElementCollection(fetch=FetchType.EAGER)
+    @CollectionTable(name=CUSTOMFIELD_VALUE_TABLE, joinColumns = {@JoinColumn(name=ENTITY_ID_COLUMN)})
+    @BatchSize(size = 100)
+    @Where(clause=CLAZZ_COLUMN+" = '"+CUSTOM_FIELD_DISCRIMINATOR+"'")
+    @SortNatural
+    protected SortedMap<EmbeddableKey, EmbeddablePrimitiveContainer> getMap() {
+        return getInnerCustomMap();
     }
 }

@@ -4,10 +4,19 @@ import static com.branegy.dbmaster.model.Column.QUERY_FIND_ALL_BY_MODELNAME;
 import static com.branegy.dbmaster.model.Column.QUERY_FIND_ALL_COUNT_BY_MODELNAME;
 import static com.branegy.dbmaster.model.Column.QUERY_FIND_ALL_COUNT_LESS_BY_MODELNAME;
 import static com.branegy.dbmaster.model.Column.QUERY_FIND_BY_MODELOBJECTNAME;
+import static com.branegy.persistence.custom.EmbeddableKey.CLAZZ_COLUMN;
+import static com.branegy.persistence.custom.EmbeddableKey.ENTITY_ID_COLUMN;
 
+import java.util.SortedMap;
+
+import javax.persistence.Access;
+import javax.persistence.AccessType;
+import javax.persistence.Cacheable;
+import javax.persistence.CollectionTable;
 import javax.persistence.DiscriminatorColumn;
 import javax.persistence.DiscriminatorType;
 import javax.persistence.DiscriminatorValue;
+import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.Inheritance;
@@ -19,20 +28,26 @@ import javax.persistence.NamedQuery;
 import javax.persistence.Table;
 import javax.validation.constraints.Size;
 
+import org.hibernate.annotations.BatchSize;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
+import org.hibernate.annotations.SortNatural;
+import org.hibernate.annotations.Where;
 
 import com.branegy.persistence.custom.CustomFieldDiscriminator;
+import com.branegy.persistence.custom.EmbeddableKey;
+import com.branegy.persistence.custom.EmbeddablePrimitiveContainer;
 import com.branegy.persistence.custom.FetchAllObjectIdByProjectSql;
 
 @Entity
 @Table(name="db_column")
 @Inheritance(strategy=InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn(discriminatorType=DiscriminatorType.STRING,length=31) //TODO fix length
-@DiscriminatorValue("Column")
-@CustomFieldDiscriminator("Column")
+@DiscriminatorValue(Column.CUSTOM_FIELD_DISCRIMINATOR)
+@CustomFieldDiscriminator(Column.CUSTOM_FIELD_DISCRIMINATOR)
+@Cacheable
 @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 @NamedQueries({
     @NamedQuery(name=QUERY_FIND_BY_MODELOBJECTNAME, query="from Column c where " +
@@ -53,6 +68,7 @@ import com.branegy.persistence.custom.FetchAllObjectIdByProjectSql;
         "inner join db_model m on m.id = mo.model_id "+
         "where m.project_id = :projectId and dtype='Column'")
 public class Column extends DatabaseObject<ModelObject> {
+    static final String CUSTOM_FIELD_DISCRIMINATOR = "Column";
     public static final String QUERY_FIND_BY_MODELOBJECTNAME = "Column.findByModelObjectName";
     public static final String QUERY_FIND_ALL_COUNT_LESS_BY_MODELNAME =
             "Column.findAllCountLessByModelIdName";
@@ -218,4 +234,14 @@ public class Column extends DatabaseObject<ModelObject> {
         return owner;
     }
 
+    @Override
+    @Access(AccessType.PROPERTY)
+    @ElementCollection(fetch=FetchType.EAGER)
+    @CollectionTable(name=CUSTOMFIELD_VALUE_TABLE, joinColumns = {@JoinColumn(name=ENTITY_ID_COLUMN)})
+    @BatchSize(size = 100)
+    @Where(clause=CLAZZ_COLUMN+" = '"+CUSTOM_FIELD_DISCRIMINATOR+"'")
+    @SortNatural
+    protected SortedMap<EmbeddableKey, EmbeddablePrimitiveContainer> getMap() {
+        return getInnerCustomMap();
+    }
 }

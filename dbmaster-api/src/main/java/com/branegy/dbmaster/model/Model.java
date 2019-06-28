@@ -5,6 +5,8 @@ import static com.branegy.dbmaster.model.Model.QUERY_MODEL_BY_PROJECT_NAME;
 import static com.branegy.dbmaster.model.Model.QUERY_MODEL_BY_PROJECT_NAME_VERSION;
 import static com.branegy.dbmaster.model.Model.QUERY_MODEL_COUNT_BY_PROJECT;
 import static com.branegy.dbmaster.model.Model.QUERY_MODEL_COUNT_BY_PROJECT_NAME;
+import static com.branegy.persistence.custom.EmbeddableKey.CLAZZ_COLUMN;
+import static com.branegy.persistence.custom.EmbeddableKey.ENTITY_ID_COLUMN;
 import static javax.persistence.CascadeType.DETACH;
 import static javax.persistence.CascadeType.PERSIST;
 import static javax.persistence.CascadeType.REFRESH;
@@ -12,8 +14,13 @@ import static javax.persistence.CascadeType.REMOVE;
 
 import java.util.Date;
 import java.util.List;
+import java.util.SortedMap;
 
+import javax.persistence.Access;
+import javax.persistence.AccessType;
+import javax.persistence.CollectionTable;
 import javax.persistence.Column;
+import javax.persistence.ElementCollection;
 import javax.persistence.Embedded;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -28,15 +35,19 @@ import javax.persistence.UniqueConstraint;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
+import org.hibernate.annotations.BatchSize;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.annotations.Formula;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
+import org.hibernate.annotations.SortNatural;
 import org.hibernate.annotations.Where;
 
 import com.branegy.dbmaster.core.Project;
 import com.branegy.persistence.custom.CustomFieldDiscriminator;
+import com.branegy.persistence.custom.EmbeddableKey;
+import com.branegy.persistence.custom.EmbeddablePrimitiveContainer;
 import com.branegy.persistence.custom.FetchAllObjectIdByProjectSql;
 import com.branegy.service.connection.model.DatabaseConnection;
 
@@ -45,7 +56,7 @@ import com.branegy.service.connection.model.DatabaseConnection;
     @UniqueConstraint(columnNames = {"project_id","name","version"}),
     @UniqueConstraint(columnNames = {"project_id","name","lastSynch"})
 })
-@CustomFieldDiscriminator("Model")
+@CustomFieldDiscriminator(Model.CUSTOM_FIELD_DISCRIMINATOR)
 @NamedQueries({
     @NamedQuery(name = QUERY_MODEL_BY_PROJECT,
             query = "from Model m where m.project.id=:projectId order by m.name asc, m.lastSynch asc"),
@@ -61,6 +72,8 @@ import com.branegy.service.connection.model.DatabaseConnection;
 @Cache(usage=CacheConcurrencyStrategy.READ_WRITE)
 @FetchAllObjectIdByProjectSql("select id from db_model where project_id=:projectId")
 public class Model extends DatabaseObject<Model> {
+    static final String CUSTOM_FIELD_DISCRIMINATOR = "Model";
+    
     public static final String QUERY_MODEL_BY_PROJECT = "Model.findByProjectId";
     public static final String QUERY_MODEL_BY_PROJECT_NAME = "Model.findByProjectName";
     public static final String QUERY_MODEL_BY_PROJECT_NAME_VERSION = "Model.findByProjectNameVersion";
@@ -271,5 +284,16 @@ public class Model extends DatabaseObject<Model> {
     @Override
     final Model getParent() {
         return null;
+    }
+    
+    @Override
+    @Access(AccessType.PROPERTY)
+    @ElementCollection(fetch=FetchType.EAGER)
+    @CollectionTable(name=CUSTOMFIELD_VALUE_TABLE, joinColumns = {@JoinColumn(name=ENTITY_ID_COLUMN)})
+    @BatchSize(size = 100)
+    @Where(clause=CLAZZ_COLUMN+" = '"+CUSTOM_FIELD_DISCRIMINATOR+"'")
+    @SortNatural
+    protected SortedMap<EmbeddableKey, EmbeddablePrimitiveContainer> getMap() {
+        return getInnerCustomMap();
     }
 }

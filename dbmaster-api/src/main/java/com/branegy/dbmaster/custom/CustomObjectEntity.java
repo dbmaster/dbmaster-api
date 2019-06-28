@@ -1,78 +1,68 @@
 package com.branegy.dbmaster.custom;
 
-import static com.branegy.dbmaster.custom.CustomObjectEntity.QUERY_DELETE_BY_CLAZZ_PROJECT;
+import static com.branegy.persistence.custom.EmbeddableKey.CLAZZ_COLUMN;
+import static com.branegy.persistence.custom.EmbeddableKey.ENTITY_ID_COLUMN;
+
+import java.util.SortedMap;
 
 import javax.persistence.Access;
 import javax.persistence.AccessType;
+import javax.persistence.CollectionTable;
+import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
-import javax.persistence.NamedQueries;
-import javax.persistence.NamedQuery;
 import javax.persistence.Table;
-import javax.persistence.Transient;
 import javax.validation.constraints.NotNull;
 
+import org.hibernate.annotations.BatchSize;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
+import org.hibernate.annotations.SortNatural;
+import org.hibernate.annotations.Where;
 
-import com.branegy.dbmaster.core.Project;
 import com.branegy.persistence.custom.BaseCustomEntity;
+import com.branegy.persistence.custom.CustomFieldDiscriminator;
+import com.branegy.persistence.custom.EmbeddableKey;
+import com.branegy.persistence.custom.EmbeddablePrimitiveContainer;
 import com.branegy.persistence.custom.FetchAllObjectIdByProjectSql;
 
 @Entity
 @Table(name="custom_object")
 @Access(AccessType.FIELD)
 @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
-@FetchAllObjectIdByProjectSql("select distinct co.id from custom_object co "+
-    "inner join CustomFieldEntity cfe on co.CUSTOM_ID = cfe.id "+
-    "where co.project_id = :projectId and cfe.clazz = :clazz")
-@NamedQueries({
-    @NamedQuery(name=QUERY_DELETE_BY_CLAZZ_PROJECT,
-            query="delete from CustomObjectEntity e "
-                + "where e in ("
-                        + "select o from CustomObjectEntity o inner join o.custom c "
-                        + "where c.clazz =:clazz and o.project=:project"
-                + ")")
-})
+@CustomFieldDiscriminator(CustomObjectEntity.CUSTOM_FIELD_DISCRIMINATOR)
+@FetchAllObjectIdByProjectSql("SELECT co.id FROM custom_object co "
+    + "WHERE co.object_type_id IN "
+    + "(SELECT cot.id FROM custom_object_type cot WHERE cot.project_id = :projectId AND cot.clazz = :clazz")
 public final class CustomObjectEntity extends BaseCustomEntity {
-    public static final String QUERY_DELETE_BY_CLAZZ_PROJECT = "CustomObjectEntity.deleteByClazzProject";
-
-    @ManyToOne(optional = false, fetch=FetchType.LAZY)
+    static final String CUSTOM_FIELD_DISCRIMINATOR = "CustomObject";
+    
+    @ManyToOne(optional = false, fetch=FetchType.EAGER)
     @OnDelete(action=OnDeleteAction.CASCADE)
-    @JoinColumn(name="project_id")
+    @JoinColumn(name="object_type_id")
     @NotNull
-    Project project;
+    CustomObjectTypeEntity entityType;
     
-    @Transient
-    String discriminator;
-
     @Override
-    public String getDiscriminator() {
-        if (hasCustomProperties() && isPersisted()){
-            return getDiscriminatorFromDatabase();
-        }
-        if (discriminator == null){
-            throw new IllegalStateException("Discriminator is not set");
-        }
-        return discriminator;
-    }
-    
-    public void setDiscriminator(String discriminator){
-        if ((hasCustomProperties() && isPersisted()) || this.discriminator!=null){
-            throw new IllegalStateException("Discriminator is already set");
-        }
-        this.discriminator = discriminator;
-    }
-    
-    public Project getProject() {
-        return project;
+    @Access(AccessType.PROPERTY)
+    @ElementCollection(fetch=FetchType.EAGER)
+    @CollectionTable(name=CUSTOMFIELD_VALUE_TABLE, joinColumns = {@JoinColumn(name=ENTITY_ID_COLUMN)})
+    @BatchSize(size = 100)
+    @Where(clause=CLAZZ_COLUMN+" = '"+CUSTOM_FIELD_DISCRIMINATOR+"'")
+    @SortNatural
+    protected SortedMap<EmbeddableKey, EmbeddablePrimitiveContainer> getMap() {
+        return getInnerCustomMap();
     }
 
-    public void setProject(Project project) {
-        this.project = project;
+    public final CustomObjectTypeEntity getEntityType() {
+        return entityType;
+    }
+
+    public final void setEntityType(CustomObjectTypeEntity entityType) {
+        this.entityType = entityType;
     }
 }

@@ -1,18 +1,32 @@
 package com.branegy.dbmaster.model;
 
+import static com.branegy.persistence.custom.EmbeddableKey.CLAZZ_COLUMN;
+import static com.branegy.persistence.custom.EmbeddableKey.ENTITY_ID_COLUMN;
+
+import java.util.SortedMap;
+
+import javax.persistence.Access;
+import javax.persistence.AccessType;
+import javax.persistence.CollectionTable;
 import javax.persistence.Column;
+import javax.persistence.ElementCollection;
 import javax.persistence.FetchType;
 import javax.persistence.JoinColumn;
 import javax.persistence.Lob;
 import javax.persistence.ManyToOne;
 import javax.validation.constraints.Size;
 
+import org.hibernate.annotations.BatchSize;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
+import org.hibernate.annotations.SortNatural;
+import org.hibernate.annotations.Where;
 
 import com.branegy.persistence.custom.CustomFieldDiscriminator;
+import com.branegy.persistence.custom.EmbeddableKey;
+import com.branegy.persistence.custom.EmbeddablePrimitiveContainer;
 
 /**
  * Represents trigger
@@ -20,13 +34,15 @@ import com.branegy.persistence.custom.CustomFieldDiscriminator;
 
 //@Entity
 @javax.persistence.Table(name="db_trigger")
-@CustomFieldDiscriminator("Trigger")
+@CustomFieldDiscriminator(Trigger.CUSTOM_FIELD_DISCRIMINATOR)
 @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 /*@FetchAllObjectIdByProjectSql("select c.id from db_constraint c "+
         "inner join db_model_object mo on c.owner_id = mo.id "+
         "inner join db_model m on m.id = mo.model_id "+
         "where m.project_id = :projectId")*/
 public class Trigger extends DatabaseObject<ModelObject> {
+    static final String CUSTOM_FIELD_DISCRIMINATOR = "Trigger";
+
     @ManyToOne(optional=false,fetch=FetchType.LAZY)
     @OnDelete(action=OnDeleteAction.CASCADE)
     @JoinColumn(name="owner_id")
@@ -161,4 +177,14 @@ public class Trigger extends DatabaseObject<ModelObject> {
         this.source = source;
     }
     
+    @Override
+    @Access(AccessType.PROPERTY)
+    @ElementCollection(fetch=FetchType.EAGER)
+    @CollectionTable(name=CUSTOMFIELD_VALUE_TABLE, joinColumns = {@JoinColumn(name=ENTITY_ID_COLUMN)})
+    @BatchSize(size = 100)
+    @Where(clause=CLAZZ_COLUMN+" = '"+CUSTOM_FIELD_DISCRIMINATOR+"'")
+    @SortNatural
+    protected SortedMap<EmbeddableKey, EmbeddablePrimitiveContainer> getMap() {
+        return getInnerCustomMap();
+    }
 }

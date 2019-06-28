@@ -1,7 +1,8 @@
 package com.branegy.service.connection.model;
 
+import static com.branegy.persistence.custom.EmbeddableKey.CLAZZ_COLUMN;
+import static com.branegy.persistence.custom.EmbeddableKey.ENTITY_ID_COLUMN;
 import static com.branegy.service.connection.model.DatabaseConnection.QUERY_CONNECTION_FIND;
-import static com.branegy.service.connection.model.DatabaseConnection.QUERY_CONNECTION_FIND_ALL_BY_PROJECT;
 import static com.branegy.service.connection.model.DatabaseConnection.QUERY_CONNECTION_FIND_ALL_ENABLED_BY_PROJECT;
 import static com.branegy.service.connection.model.DatabaseConnection.QUERY_CONNECTION_FIND_ALL_ENABLED_COUNT;
 import static com.branegy.service.connection.model.DatabaseConnection.QUERY_CONNECTION_FIND_ALL_PAGE_COUNT;
@@ -13,12 +14,15 @@ import java.io.Serializable;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.util.Properties;
+import java.util.SortedMap;
 
 import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
 import javax.persistence.Access;
 import javax.persistence.AccessType;
+import javax.persistence.CollectionTable;
 import javax.persistence.Column;
+import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.JoinColumn;
@@ -32,13 +36,16 @@ import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
 
+import org.hibernate.annotations.BatchSize;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 import org.hibernate.annotations.Parameter;
+import org.hibernate.annotations.SortNatural;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
+import org.hibernate.annotations.Where;
 
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
@@ -46,13 +53,13 @@ import com.google.inject.name.Named;
 import com.branegy.dbmaster.core.Project;
 import com.branegy.persistence.custom.BaseCustomEntity;
 import com.branegy.persistence.custom.CustomFieldDiscriminator;
+import com.branegy.persistence.custom.EmbeddableKey;
+import com.branegy.persistence.custom.EmbeddablePrimitiveContainer;
 import com.branegy.persistence.custom.FetchAllObjectIdByProjectSql;
 import com.branegy.persistence.xml.XmlBlobArray;
 
 @Entity
 @NamedQueries({
-    @NamedQuery(name = QUERY_CONNECTION_FIND_ALL_BY_PROJECT, query = "select c from DatabaseConnection c " +
-            "where c.project.id=:projectId"),
     @NamedQuery(name = QUERY_CONNECTION_FIND_ALL_ENABLED_BY_PROJECT, query = "select c from DatabaseConnection c " +
             "where c.project.id=:projectId and c.disabled = false"),
     @NamedQuery(name = QUERY_CONNECTION_FULL_LIST, query = "from DatabaseConnection c " +
@@ -71,7 +78,7 @@ import com.branegy.persistence.xml.XmlBlobArray;
             query = "from DatabaseConnection c where c.project.name || '.' || c.name = :name")
 })
 @Table(name="db_connection",uniqueConstraints={@UniqueConstraint(columnNames={"name","project_id"})})
-@CustomFieldDiscriminator("Connection")
+@CustomFieldDiscriminator(DatabaseConnection.CUSTOM_FIELD_DISCRIMINATOR)
 @Cache(usage=CacheConcurrencyStrategy.READ_WRITE)
 @TypeDef(name="to-xml-array",typeClass=XmlBlobArray.class,parameters={
     @Parameter(name = "alias.connection",
@@ -79,8 +86,9 @@ import com.branegy.persistence.xml.XmlBlobArray;
 })
 @FetchAllObjectIdByProjectSql("select id from db_connection where project_id=:projectId")
 public class DatabaseConnection extends BaseCustomEntity {
+    static final String CUSTOM_FIELD_DISCRIMINATOR = "Connection";
+    
     public static final String QUERY_CONNECTION_FIND = "Connection.find";
-    public static final String QUERY_CONNECTION_FIND_ALL_BY_PROJECT = "Connection.findAllByProject";
     public static final String QUERY_CONNECTION_FIND_ALL_ENABLED_BY_PROJECT = "Connection.findAllEnabledByProject";
     public static final String QUERY_CONNECTION_FULL_LIST = "Connection.findFullList";
     public static final String QUERY_CONNECTION_FULL_LIST_COUNT = "Connection.findFullListCount";
@@ -310,5 +318,16 @@ public class DatabaseConnection extends BaseCustomEntity {
 
     public void setDisabled(boolean disabled) {
         this.disabled = disabled;
+    }
+    
+    @Override
+    @Access(AccessType.PROPERTY)
+    @ElementCollection(fetch=FetchType.EAGER)
+    @CollectionTable(name=CUSTOMFIELD_VALUE_TABLE, joinColumns = {@JoinColumn(name=ENTITY_ID_COLUMN)})
+    @BatchSize(size = 100)
+    @Where(clause=CLAZZ_COLUMN+" = '"+CUSTOM_FIELD_DISCRIMINATOR+"'")
+    @SortNatural
+    protected SortedMap<EmbeddableKey, EmbeddablePrimitiveContainer> getMap() {
+        return getInnerCustomMap();
     }
 }

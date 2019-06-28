@@ -10,6 +10,7 @@ import static javax.persistence.CascadeType.REMOVE;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.persistence.Cacheable;
 import javax.persistence.DiscriminatorColumn;
 import javax.persistence.DiscriminatorType;
 import javax.persistence.Entity;
@@ -26,6 +27,7 @@ import javax.persistence.PrePersist;
 import javax.persistence.PreUpdate;
 import javax.persistence.Table;
 import javax.persistence.Transient;
+import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
 import org.hibernate.annotations.BatchSize;
@@ -37,12 +39,14 @@ import org.hibernate.annotations.Where;
 
 import com.google.common.base.Preconditions;
 
+import com.branegy.persistence.custom.CustomFieldDiscriminator;
 import com.branegy.service.core.exception.IllegalStateApiException;
 
 @Entity
 @Table(name="db_model_object")
 @Inheritance(strategy=InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn(discriminatorType=DiscriminatorType.STRING,length=5)
+@Cacheable
 @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 @BatchSize(size=100)
 @NamedQueries({
@@ -52,7 +56,9 @@ import com.branegy.service.core.exception.IllegalStateApiException;
     @NamedQuery(name=QUERY_FIND_BY_NAME, query="select mo from ModelObject mo " +
             "where mo.model.id=:modelId and TYPE(mo)=:type and UPPER(mo.name)=UPPER(:name)")
 })
+@CustomFieldDiscriminator(ModelObject.CUSTOM_FIELD_DISCRIMINATOR)
 public abstract class ModelObject extends DatabaseObject<Model> {
+    static final String CUSTOM_FIELD_DISCRIMINATOR = "ModelObject";
     public static final String QUERY_FIND_PAGE = "ModelObject.findPage";
     public static final String QUERY_FIND_BY_NAME = "ModelObject.findByName";
     
@@ -61,8 +67,9 @@ public abstract class ModelObject extends DatabaseObject<Model> {
     @JoinColumn(name="model_id")
     Model model;
 
-    @javax.persistence.Column(name="name",length=255)
+    @javax.persistence.Column(name="name",length=255,nullable = false)
     @Size(min=1,max=255)
+    @NotNull
     String name;
 
     @OneToMany(mappedBy="owner",targetEntity=Column.class, orphanRemoval=true,

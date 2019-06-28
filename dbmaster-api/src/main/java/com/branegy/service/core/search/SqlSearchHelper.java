@@ -16,6 +16,7 @@ import com.branegy.dbmaster.core.User;
 import com.branegy.service.core.ISecurityContext;
 import com.branegy.service.core.search.CustomCriterion.Operator;
 
+@Deprecated
 public abstract class SqlSearchHelper {
     
     public static final String KEY = "pkey";
@@ -102,6 +103,7 @@ public abstract class SqlSearchHelper {
         }
     }
 
+    @Deprecated
     public static class OrderBy {
         private final String field;
         private final SortDir direction;

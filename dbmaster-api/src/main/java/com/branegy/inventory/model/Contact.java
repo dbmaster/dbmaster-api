@@ -1,28 +1,42 @@
 package com.branegy.inventory.model;
 
+import static com.branegy.persistence.custom.EmbeddableKey.CLAZZ_COLUMN;
+import static com.branegy.persistence.custom.EmbeddableKey.ENTITY_ID_COLUMN;
+
+import java.util.SortedMap;
+
+import javax.persistence.Access;
+import javax.persistence.AccessType;
+import javax.persistence.CollectionTable;
+import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
+import org.hibernate.annotations.BatchSize;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
+import org.hibernate.annotations.SortNatural;
+import org.hibernate.annotations.Where;
 
 import com.branegy.dbmaster.core.Project;
 import com.branegy.persistence.custom.BaseCustomEntity;
 import com.branegy.persistence.custom.CustomFieldDiscriminator;
+import com.branegy.persistence.custom.EmbeddableKey;
+import com.branegy.persistence.custom.EmbeddablePrimitiveContainer;
 import com.branegy.persistence.custom.FetchAllObjectIdByProjectSql;
 
 @Entity
 @Table(name = "inv_contact")
-@CustomFieldDiscriminator("Contact")
+@CustomFieldDiscriminator(Contact.CUSTOM_FIELD_DISCRIMINATOR)
 @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 @FetchAllObjectIdByProjectSql("select id from inv_contact where project_id=:projectId")
 public class Contact extends BaseCustomEntity {
-
+    static final String CUSTOM_FIELD_DISCRIMINATOR = "Contact";
     public static final String NAME = "ContactName";
     public static final String PHONE = "ContactPhone";
     public static final String EMAIL = "ContactEmail";
@@ -49,4 +63,14 @@ public class Contact extends BaseCustomEntity {
         setCustomData(NAME,contactName);
     }
 
+    @Override
+    @Access(AccessType.PROPERTY)
+    @ElementCollection(fetch=FetchType.EAGER)
+    @CollectionTable(name=BaseCustomEntity.CUSTOMFIELD_VALUE_TABLE, joinColumns = {@JoinColumn(name=ENTITY_ID_COLUMN)})
+    @BatchSize(size = 100)
+    @Where(clause=CLAZZ_COLUMN+" = '"+CUSTOM_FIELD_DISCRIMINATOR+"'")
+    @SortNatural
+    protected SortedMap<EmbeddableKey, EmbeddablePrimitiveContainer> getMap() {
+        return getInnerCustomMap();
+    }
 }

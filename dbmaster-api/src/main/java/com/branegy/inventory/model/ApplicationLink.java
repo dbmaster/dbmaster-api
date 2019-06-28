@@ -1,31 +1,44 @@
 package com.branegy.inventory.model;
 
+import static com.branegy.persistence.custom.EmbeddableKey.CLAZZ_COLUMN;
+import static com.branegy.persistence.custom.EmbeddableKey.ENTITY_ID_COLUMN;
+
+import java.util.SortedMap;
+
 import javax.persistence.Access;
 import javax.persistence.AccessType;
+import javax.persistence.CollectionTable;
+import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
+import org.hibernate.annotations.BatchSize;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
+import org.hibernate.annotations.SortNatural;
+import org.hibernate.annotations.Where;
 
 import com.branegy.persistence.custom.BaseCustomEntity;
 import com.branegy.persistence.custom.CustomFieldDiscriminator;
+import com.branegy.persistence.custom.EmbeddableKey;
+import com.branegy.persistence.custom.EmbeddablePrimitiveContainer;
 import com.branegy.persistence.custom.FetchAllObjectIdByProjectSql;
 
 @Entity
 @Table(name="inv_application_link")
 @Access(AccessType.FIELD)
-@CustomFieldDiscriminator("ApplicationLink")
+@CustomFieldDiscriminator(ApplicationLink.CUSTOM_FIELD_DISCRIMINATOR)
 @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 @FetchAllObjectIdByProjectSql("select id from inv_application_link al " +
         "inner join inv_application a on al.application_id=a.id where a.project_id=:projectId")
 public class ApplicationLink extends BaseCustomEntity{
-    
+    static final String CUSTOM_FIELD_DISCRIMINATOR = "ApplicationLink";
+
     @ManyToOne(fetch=FetchType.LAZY)
     @JoinColumn(name="job_id")
     @OnDelete(action=OnDeleteAction.CASCADE)
@@ -51,19 +64,30 @@ public class ApplicationLink extends BaseCustomEntity{
         this.application = application;
     }
 
-    public final Job getJob() {
+    public Job getJob() {
         return job;
     }
 
-    public final void setJob(Job job) {
+    public void setJob(Job job) {
         this.job = job;
     }
 
-    public final SecurityObject getSecurityObject() {
+    public SecurityObject getSecurityObject() {
         return securityObject;
     }
 
-    public final void setSecurityObject(SecurityObject securityObject) {
+    public void setSecurityObject(SecurityObject securityObject) {
         this.securityObject = securityObject;
+    }
+    
+    @Override
+    @Access(AccessType.PROPERTY)
+    @ElementCollection(fetch=FetchType.EAGER)
+    @CollectionTable(name=BaseCustomEntity.CUSTOMFIELD_VALUE_TABLE, joinColumns = {@JoinColumn(name=ENTITY_ID_COLUMN)})
+    @BatchSize(size = 100)
+    @Where(clause=CLAZZ_COLUMN+" = '"+CUSTOM_FIELD_DISCRIMINATOR+"'")
+    @SortNatural
+    protected SortedMap<EmbeddableKey, EmbeddablePrimitiveContainer> getMap() {
+        return getInnerCustomMap();
     }
 }

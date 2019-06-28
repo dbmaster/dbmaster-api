@@ -3,9 +3,9 @@ package com.branegy.service.core;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.branegy.service.core.search.CustomCriterion;
-import com.branegy.service.core.search.SearchFilterParser;
-import com.branegy.service.core.search.SqlSearchHelper.OrderBy;
+import com.branegy.persistence.custom.api.OrderBy;
+import com.branegy.persistence.custom.api.QueryExpression;
+import com.branegy.persistence.custom.api.SqlCustomSearchParserFactory;
 
 /**
  * This object is not thread-safe!
@@ -17,11 +17,9 @@ public final class QueryRequest {
      * page size
      */
     private int limit = 0;
+    
+    private List<OrderBy> orders;
 
-    private List<OrderBy> order;
-    
-    private String filter;
-    
     /**
      * explicit list of attributes(relations) separated by comma
      * can be used to limit queries to database when related objects are not required
@@ -32,8 +30,7 @@ public final class QueryRequest {
     
     private boolean calculateTotalSize = true;
     
-    // converted filters
-    private List<CustomCriterion> criterionList = new ArrayList<CustomCriterion>();
+    private QueryExpression criteria;
     
     public QueryRequest() {
         this(null);
@@ -42,34 +39,25 @@ public final class QueryRequest {
     public QueryRequest(String filter) {
         this.setFilter(filter);
     }
-
+    
     public QueryRequest(int offset, int limit, OrderBy order, String filter) {
         this.setOffset(offset);
         this.setLimit(limit);
         if (order!=null) {
-            addOrderField(order);
+            addOrderBy(order);
         }
         this.setFilter(filter);
     }
 
-    public void addOrderField(OrderBy orderBy) {
-        if (order==null) {
-            order = new ArrayList<OrderBy>(1);
+    public void addOrderBy(OrderBy orderBy) {
+        if (orders==null) {
+            orders = new ArrayList<>(2);
         }
-        order.add(orderBy);
+        orders.add(orderBy);
     }
-
-    public List<CustomCriterion> getCriteria() {
-        return criterionList;
-    }
-
-    public String getFilter() {
-        return filter;
-    }
-
-    public void setFilter(String filter) {
-        this.filter = filter;
-        criterionList = new ArrayList<CustomCriterion>(SearchFilterParser.parseFilter(filter));
+    
+    private void setFilter(String filter) {
+        criteria = SqlCustomSearchParserFactory.get().parse(filter);
     }
 
     public String getFetchPath() {
@@ -79,16 +67,31 @@ public final class QueryRequest {
     public void setFetchPath(String fetchPath) {
         this.fetchPath = fetchPath;
     }
+    
+    public boolean hasOrderBy() {
+        return orders!=null && !orders.isEmpty();
+    }
 
-    public List<OrderBy> getOrder() {
-        return order;
+    public List<OrderBy> getOrderByList() {
+        if (orders == null) {
+            orders = new ArrayList<>(2);
+        }
+        return orders;
     }
 
     public int getOffset() {
         return offset;
     }
+    
+    public boolean hasOffset() {
+        return offset!=0;
+    }
+    
 
     public void setOffset(int offset) {
+        if (offset<0) {
+            throw new IllegalArgumentException("Offset must be positive number");
+        }
         this.offset = offset;
     }
 
@@ -116,5 +119,13 @@ public final class QueryRequest {
 
     public void setCalculateTotalSize(boolean calculateTotalSize) {
         this.calculateTotalSize = calculateTotalSize;
+    }
+    
+    public QueryExpression getQueryExpression() {
+        return criteria;
+    }
+
+    public final void setQueryExpression(QueryExpression queryExpression) {
+        this.criteria = queryExpression;
     }
 }

@@ -7,8 +7,17 @@ import static com.branegy.inventory.model.DatabaseUsage.QUERY_DB_USAGE_BY_PROJEC
 import static com.branegy.inventory.model.DatabaseUsage.QUERY_DB_USAGE_COUNT_BY_APPLICATION;
 import static com.branegy.inventory.model.DatabaseUsage.QUERY_DB_USAGE_COUNT_BY_DATABASE;
 import static com.branegy.inventory.model.DatabaseUsage.QUERY_DB_USAGE_COUNT_BY_INSTALLATION;
+import static com.branegy.persistence.custom.EmbeddableKey.CLAZZ_COLUMN;
+import static com.branegy.persistence.custom.EmbeddableKey.ENTITY_ID_COLUMN;
 
+import java.util.SortedMap;
+
+import javax.persistence.Access;
+import javax.persistence.AccessType;
+import javax.persistence.CollectionTable;
+import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
@@ -20,14 +29,18 @@ import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
+import org.hibernate.annotations.SortNatural;
+import org.hibernate.annotations.Where;
 
 import com.branegy.persistence.custom.BaseCustomEntity;
 import com.branegy.persistence.custom.CustomFieldDiscriminator;
+import com.branegy.persistence.custom.EmbeddableKey;
+import com.branegy.persistence.custom.EmbeddablePrimitiveContainer;
 import com.branegy.persistence.custom.FetchAllObjectIdByProjectSql;
 
 @Entity
 @Table(name="inv_database_usage")
-@CustomFieldDiscriminator("DatabaseUsage")
+@CustomFieldDiscriminator(DatabaseUsage.CUSTOM_FIELD_DISCRIMINATOR)
 @NamedQueries( {
     @NamedQuery(name = QUERY_DB_USAGE_BY_INSTALLATION, query = "from DatabaseUsage du "
             + "where du.installation.id=:installation_id"),
@@ -51,6 +64,7 @@ import com.branegy.persistence.custom.FetchAllObjectIdByProjectSql;
 @FetchAllObjectIdByProjectSql("select id from inv_database_usage du " +
         "inner join inv_database d on du.database_id=d.id where d.project_id=:projectId")
 public class DatabaseUsage extends BaseCustomEntity{
+    static final String CUSTOM_FIELD_DISCRIMINATOR = "DatabaseUsage";
     public static final String QUERY_DB_USAGE_BY_INSTALLATION = "DBUsage.findByInstallation";
     public static final String QUERY_DB_USAGE_COUNT_BY_INSTALLATION = "DBUsage.findCountByInstallation";
     public static final String QUERY_DB_USAGE_BY_DATABASE = "DBUsage.findByDatabase";
@@ -97,4 +111,14 @@ public class DatabaseUsage extends BaseCustomEntity{
         this.application = application;
     }
 
+    @Override
+    @Access(AccessType.PROPERTY)
+    @ElementCollection(fetch=FetchType.EAGER)
+    @CollectionTable(name=BaseCustomEntity.CUSTOMFIELD_VALUE_TABLE, joinColumns = {@JoinColumn(name=ENTITY_ID_COLUMN)})
+    @BatchSize(size = 100)
+    @Where(clause=CLAZZ_COLUMN+" = '"+CUSTOM_FIELD_DISCRIMINATOR+"'")
+    @SortNatural
+    protected SortedMap<EmbeddableKey, EmbeddablePrimitiveContainer> getMap() {
+        return getInnerCustomMap();
+    }
 }

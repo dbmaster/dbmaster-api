@@ -5,13 +5,19 @@ import static com.branegy.inventory.model.Installation.QUERY_INSTALLATION_BY_PRO
 import static com.branegy.inventory.model.Installation.QUERY_INSTALLATION_BY_SERVER;
 import static com.branegy.inventory.model.Installation.QUERY_INSTALLATION_COUNT_BY_APPLICATION;
 import static com.branegy.inventory.model.Installation.QUERY_INSTALLATION_COUNT_BY_SERVER;
+import static com.branegy.persistence.custom.EmbeddableKey.CLAZZ_COLUMN;
+import static com.branegy.persistence.custom.EmbeddableKey.ENTITY_ID_COLUMN;
 
 import java.util.Date;
+import java.util.SortedMap;
 
 import javax.persistence.Access;
 import javax.persistence.AccessType;
+import javax.persistence.CollectionTable;
 import javax.persistence.Column;
+import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
@@ -20,11 +26,16 @@ import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
+import org.hibernate.annotations.BatchSize;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
+import org.hibernate.annotations.SortNatural;
+import org.hibernate.annotations.Where;
 
 import com.branegy.persistence.custom.BaseCustomEntity;
 import com.branegy.persistence.custom.CustomFieldDiscriminator;
+import com.branegy.persistence.custom.EmbeddableKey;
+import com.branegy.persistence.custom.EmbeddablePrimitiveContainer;
 import com.branegy.persistence.custom.FetchAllObjectIdByProjectSql;
 
 @Entity
@@ -53,13 +64,13 @@ import com.branegy.persistence.custom.FetchAllObjectIdByProjectSql;
 //                + "where du.database.id=:database_id)")
 })
 @Table(name="inv_app_instance")
-// TODO Replace discriminator with Installation
-@CustomFieldDiscriminator("Installation")
+@CustomFieldDiscriminator(Installation.CUSTOM_FIELD_DISCRIMINATOR)
 @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 @FetchAllObjectIdByProjectSql("select id from inv_app_instance ai " +
         "inner join inv_server s on ai.server_id=s.id where s.project_id=:projectId")
 public class Installation extends BaseCustomEntity {
-//    public static final String QUERY_INSTALLATION_BY_DATABASE =
+    static final String CUSTOM_FIELD_DISCRIMINATOR = "Installation";
+    //    public static final String QUERY_INSTALLATION_BY_DATABASE =
 //            "Installation.findByDatabase";
 //    public static final String QUERY_INSTALLATION_COUNT_BY_DATABASE =
 //            "Installation.findCountByDatabase";
@@ -120,5 +131,16 @@ public class Installation extends BaseCustomEntity {
             title+="\\"+instanceName;
         }
         return title;
+    }
+    
+    @Override
+    @Access(AccessType.PROPERTY)
+    @ElementCollection(fetch=FetchType.EAGER)
+    @CollectionTable(name=BaseCustomEntity.CUSTOMFIELD_VALUE_TABLE, joinColumns = {@JoinColumn(name=ENTITY_ID_COLUMN)})
+    @BatchSize(size = 100)
+    @Where(clause=CLAZZ_COLUMN+" = '"+CUSTOM_FIELD_DISCRIMINATOR+"'")
+    @SortNatural
+    protected SortedMap<EmbeddableKey, EmbeddablePrimitiveContainer> getMap() {
+        return getInnerCustomMap();
     }
 }

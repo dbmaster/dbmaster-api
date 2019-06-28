@@ -8,6 +8,7 @@ import java.util.List;
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
 
+@Deprecated
 public class CountSqlHelper extends SqlSearchHelper {
     protected SqlBuilder sql;
 

@@ -30,6 +30,7 @@ import javax.persistence.Transient;
 import javax.persistence.UniqueConstraint;
 import javax.validation.constraints.NotNull;
 
+import org.hibernate.annotations.BatchSize;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
@@ -139,6 +140,7 @@ public class CustomFieldConfig extends BaseEntity {
     @ElementCollection(fetch=FetchType.EAGER)
     @Column(name="textValues", length = 255)
     @CollectionTable(name="customfield_config_values_text")
+    @BatchSize(size = 100)
     private List<String> textValues;
     
     @Transient
@@ -330,11 +332,11 @@ public class CustomFieldConfig extends BaseEntity {
         this.customObjectType = customObjectType;
     }
 
-    public final String getFormat() {
+    public String getFormat() {
         return format;
     }
 
-    public final void setFormat(String format) {
+    public void setFormat(String format) {
         this.format = format;
     }
 
