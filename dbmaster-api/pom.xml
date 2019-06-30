@@ -6,11 +6,11 @@
     <parent>
         <groupId>io.dbmaster</groupId>
         <artifactId>dbmaster-parent</artifactId>
-        <version>1.12.0</version>
+        <version>2.0</version>
     </parent>
 
     <artifactId>dbmaster-api</artifactId>
-    <version>1.12.2-SNAPSHOT</version>
+    <version>2.0-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <name>DBMaster API</name>
