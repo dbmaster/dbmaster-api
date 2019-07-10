@@ -246,6 +246,20 @@ public abstract class BaseServiceImpl {
         query.unwrap(NativeQuery.class).addSynchronizedQuerySpace("");
     }
     
+    public static void disableInvalidateCache(Query query, Class<? extends BaseEntity> clazz) {
+        query.unwrap(NativeQuery.class).addSynchronizedEntityClass(clazz);
+    }
+    
+    @SuppressWarnings("unchecked")
+    public static void disableInvalidateCache(Query query, Class<? extends BaseEntity>... clazzes) {
+        NativeQuery<?> unwrap = query.unwrap(NativeQuery.class);
+        for (Class<? extends BaseEntity> clazz:clazzes) {
+            unwrap.addSynchronizedEntityClass(clazz);
+        }
+    }
+    
+    
+    
     public static <T extends BaseEntity> T getUnchangedObject(EntityManager em,Class<T> clazz, T object){
         EntityManager entityManager = null;
         try{

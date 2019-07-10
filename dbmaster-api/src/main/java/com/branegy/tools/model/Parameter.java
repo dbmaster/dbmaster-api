@@ -7,7 +7,6 @@ import java.text.SimpleDateFormat;
 
 import com.branegy.dbmaster.custom.CustomFieldConfig.Type;
 import com.branegy.service.core.exception.ApiException;
-import com.branegy.service.core.search.CustomCriterion;
 
 public class Parameter {
 
@@ -121,7 +120,7 @@ public class Parameter {
                 break;
             case DATE:
                 try {
-                    result = (T) new SimpleDateFormat(CustomCriterion.DATE_FORMAT).parse(value);
+                    result = (T) new SimpleDateFormat("MM/dd/yy").parse(value); // TODO
                 } catch (ParseException e) {
                     throw new ApiException(e);
                 }
