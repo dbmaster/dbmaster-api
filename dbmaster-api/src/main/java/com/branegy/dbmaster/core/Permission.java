@@ -4,6 +4,7 @@ import static com.branegy.dbmaster.core.Permission.QUERY_PERMISSION_BY_PROJECT;
 import static com.branegy.dbmaster.core.Permission.QUERY_PERMISSION_BY_PROJECT_USER;
 import static com.branegy.dbmaster.core.Permission.QUERY_PERMISSION_BY_USER;
 import static com.branegy.dbmaster.core.Permission.QUERY_PERMISSION_COUNT_BY_PROJECT;
+import static org.hibernate.jpa.QueryHints.HINT_CACHEABLE;
 
 import javax.persistence.Access;
 import javax.persistence.AccessType;
@@ -16,6 +17,7 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
+import javax.persistence.QueryHint;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
 
@@ -30,7 +32,9 @@ import com.branegy.persistence.BaseEntity;
     uniqueConstraints = { @UniqueConstraint(columnNames = { "user_id", "project_id", "role" }) })
 @NamedQueries( {
         @NamedQuery(name = QUERY_PERMISSION_BY_PROJECT_USER, query = "from Permission p "
-                + "where p.project=:project and (p.user=:user or p.user is null)"),
+                + "where p.project=:project and (p.user=:user or p.user is null)",
+                    hints = @QueryHint(name = HINT_CACHEABLE, value="true")
+        ),
         @NamedQuery(name = QUERY_PERMISSION_BY_USER, query = "from Permission p "
                 + "where p.user.id=:userId"),
         @NamedQuery(name = QUERY_PERMISSION_BY_PROJECT, query = "from Permission p "

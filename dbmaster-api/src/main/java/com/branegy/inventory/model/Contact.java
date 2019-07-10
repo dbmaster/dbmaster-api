@@ -70,6 +70,7 @@ public class Contact extends BaseCustomEntity {
     @BatchSize(size = 100)
     @Where(clause=CLAZZ_COLUMN+" = '"+CUSTOM_FIELD_DISCRIMINATOR+"'")
     @SortNatural
+    @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
     protected SortedMap<EmbeddableKey, EmbeddablePrimitiveContainer> getMap() {
         return getInnerCustomMap();
     }

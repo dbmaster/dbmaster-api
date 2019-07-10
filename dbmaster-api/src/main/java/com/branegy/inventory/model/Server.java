@@ -43,7 +43,7 @@ import com.branegy.persistence.custom.FetchAllObjectIdByProjectSql;
 @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 @FetchAllObjectIdByProjectSql("select id from inv_server where project_id=:projectId")
 public class Server extends BaseCustomEntity {
-    static final String CUSTOM_FIELD_DISCRIMINATOR = "Server";
+    public static final String CUSTOM_FIELD_DISCRIMINATOR = "Server";
 
     public static final String QUERY_SERVER_FIND_ALL = "findAllServers";
 
@@ -77,6 +77,7 @@ public class Server extends BaseCustomEntity {
     @BatchSize(size = 100)
     @Where(clause=CLAZZ_COLUMN+" = '"+CUSTOM_FIELD_DISCRIMINATOR+"'")
     @SortNatural
+    @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
     protected SortedMap<EmbeddableKey, EmbeddablePrimitiveContainer> getMap() {
         return getInnerCustomMap();
     }

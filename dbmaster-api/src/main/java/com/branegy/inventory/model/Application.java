@@ -68,7 +68,7 @@ import com.branegy.persistence.custom.FetchAllObjectIdByProjectSql;
  *
  */
 public class Application extends BaseCustomEntity {
-    static final String CUSTOM_FIELD_DISCRIMINATOR = "Application";
+    public static final String CUSTOM_FIELD_DISCRIMINATOR = "Application";
     public static final String QUERY_APPLICATION_ALL = "Application.findAll";
     public static final String QUERY_APPLICATION_BY_DATABASE = "Application.findByDatabase";
     public static final String QUERY_COUNT_APPLICATION_BY_DATABASE = "Application.findCountByDatabase";
@@ -105,6 +105,7 @@ public class Application extends BaseCustomEntity {
     @BatchSize(size = 100)
     @Where(clause=CLAZZ_COLUMN+" = '"+CUSTOM_FIELD_DISCRIMINATOR+"'")
     @SortNatural
+    @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
     protected SortedMap<EmbeddableKey, EmbeddablePrimitiveContainer> getMap() {
         return getInnerCustomMap();
     }

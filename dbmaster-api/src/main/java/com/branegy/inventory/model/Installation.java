@@ -69,7 +69,7 @@ import com.branegy.persistence.custom.FetchAllObjectIdByProjectSql;
 @FetchAllObjectIdByProjectSql("select id from inv_app_instance ai " +
         "inner join inv_server s on ai.server_id=s.id where s.project_id=:projectId")
 public class Installation extends BaseCustomEntity {
-    static final String CUSTOM_FIELD_DISCRIMINATOR = "Installation";
+    public static final String CUSTOM_FIELD_DISCRIMINATOR = "Installation";
     //    public static final String QUERY_INSTALLATION_BY_DATABASE =
 //            "Installation.findByDatabase";
 //    public static final String QUERY_INSTALLATION_COUNT_BY_DATABASE =
@@ -140,6 +140,7 @@ public class Installation extends BaseCustomEntity {
     @BatchSize(size = 100)
     @Where(clause=CLAZZ_COLUMN+" = '"+CUSTOM_FIELD_DISCRIMINATOR+"'")
     @SortNatural
+    @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
     protected SortedMap<EmbeddableKey, EmbeddablePrimitiveContainer> getMap() {
         return getInnerCustomMap();
     }
