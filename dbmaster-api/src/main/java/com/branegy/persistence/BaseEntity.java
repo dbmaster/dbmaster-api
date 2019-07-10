@@ -17,8 +17,6 @@ import javax.persistence.Version;
 import javax.validation.constraints.Size;
 
 import org.hibernate.Hibernate;
-import org.hibernate.annotations.Generated;
-import org.hibernate.annotations.GenerationTime;
 
 @MappedSuperclass
 @Access(AccessType.FIELD)
@@ -37,7 +35,7 @@ public abstract class BaseEntity implements IEntity {
     private Date updated;
 
     @Temporal(TemporalType.TIMESTAMP)
-    @Generated(GenerationTime.INSERT)
+    //@Generated(GenerationTime.INSERT)
     @Column(name="created",nullable = false, updatable = false)
     private Date created;
 
@@ -73,7 +71,7 @@ public abstract class BaseEntity implements IEntity {
     @PrePersist
     final void prePersist(){
         preUpdate();
-        // created = new Date(); updated by @Generated(GenerationTime.INSERT)
+        created = new Date(); //updated by @Generated(GenerationTime.INSERT)
         createAuthor = updateAuthor;
     }
 
