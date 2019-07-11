@@ -35,7 +35,6 @@ public abstract class BaseEntity implements IEntity {
     private Date updated;
 
     @Temporal(TemporalType.TIMESTAMP)
-    //@Generated(GenerationTime.INSERT)
     @Column(name="created",nullable = false, updatable = false)
     private Date created;
 
@@ -71,7 +70,7 @@ public abstract class BaseEntity implements IEntity {
     @PrePersist
     final void prePersist(){
         preUpdate();
-        created = new Date(); //updated by @Generated(GenerationTime.INSERT)
+        created = new Date();
         createAuthor = updateAuthor;
     }
 
