@@ -48,6 +48,15 @@ public final class QueryRequest {
         }
         this.setFilter(filter);
     }
+    
+    public QueryRequest(int offset, int limit, OrderBy order, String filter, String... filterExtensions) {
+        this.setOffset(offset);
+        this.setLimit(limit);
+        if (order!=null) {
+            addOrderBy(order);
+        }
+        this.setFilter(filter, filterExtensions);
+    }
 
     public void addOrderBy(OrderBy orderBy) {
         if (orders==null) {
@@ -56,8 +65,8 @@ public final class QueryRequest {
         orders.add(orderBy);
     }
     
-    private void setFilter(String filter) {
-        criteria = SqlCustomSearchParserFactory.get().parse(filter);
+    private void setFilter(String filter, String... filterExtensions) {
+        criteria = SqlCustomSearchParserFactory.get().parse(filter,filterExtensions);
     }
 
     public String getFetchPath() {

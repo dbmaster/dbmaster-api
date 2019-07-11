@@ -3,6 +3,7 @@ package com.branegy.service.core.search;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+
 public class SqlBuilder{
     private static final Pattern TRY_FROM_STRING = Pattern.compile(
             "\\s*SELECT\\s+(?<select>.+?)"+
@@ -99,6 +100,10 @@ public class SqlBuilder{
     
     public boolean hasOrderBy() {
         return order.length()!=0;
+    }
+    
+    public boolean isDistinct() {
+        return select.toString().toLowerCase().startsWith("distinct ");
     }
 
     public SqlBuilder setSelect(String select) {

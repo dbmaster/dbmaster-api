@@ -1,7 +1,8 @@
 package com.branegy.persistence.custom.api;
 
 public interface SqlCustomSearchParser {
-    
-    QueryExpression parse(String text);
+    String EXTENSION_CONTACT = "contact";
+
+    QueryExpression parse(String text, String... extensions);
     
 }

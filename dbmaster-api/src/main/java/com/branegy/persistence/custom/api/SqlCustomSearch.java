@@ -8,10 +8,12 @@ import javax.persistence.Query;
 import com.branegy.persistence.BaseEntity;
 
 public interface SqlCustomSearch<T extends BaseEntity> {
-
+    
     Query getQuery(EntityManager em);
     List<T> getList(EntityManager em);
 
     Query getCountQuery(EntityManager em);
     int getCount(EntityManager em);
+    
+    SqlCustomSearch<T> setParameter(String name, Object value);
 }

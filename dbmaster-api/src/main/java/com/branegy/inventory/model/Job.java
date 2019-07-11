@@ -36,7 +36,7 @@ import com.branegy.persistence.custom.FetchAllObjectIdByProjectSql;
 @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 @FetchAllObjectIdByProjectSql("select id from inv_job where project_id=:projectId")
 public class Job extends BaseCustomEntity {
-    static final String CUSTOM_FIELD_DISCRIMINATOR = "Job";
+    public static final String CUSTOM_FIELD_DISCRIMINATOR = "Job";
     
     public static final String JOB_NAME = "JobName";
     public static final String SERVER_NAME = "ServerName";
