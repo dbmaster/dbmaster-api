@@ -3,17 +3,21 @@ package com.branegy.inventory.model;
 import static com.branegy.persistence.custom.EmbeddableKey.CLAZZ_COLUMN;
 import static com.branegy.persistence.custom.EmbeddableKey.ENTITY_ID_COLUMN;
 
+import java.util.Date;
 import java.util.SortedMap;
 
 import javax.persistence.Access;
 import javax.persistence.AccessType;
 import javax.persistence.CollectionTable;
+import javax.persistence.Column;
 import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
 
 import org.hibernate.annotations.BatchSize;
 import org.hibernate.annotations.Cache;
@@ -41,13 +45,20 @@ public class Job extends BaseCustomEntity {
     public static final String JOB_NAME = "JobName";
     public static final String SERVER_NAME = "ServerName";
     public static final String JOB_TYPE = "JobType";
-    public static final String DELETED = "Deleted";
-    public static final String LAST_SYNC_DATE = "Last Sync Date";
+    //public static final String DELETED = "Deleted";
+    //public static final String LAST_SYNC_DATE = "Last Sync Date";
     
     @ManyToOne(optional = false,fetch=FetchType.LAZY)
     @OnDelete(action = OnDeleteAction.CASCADE)
     @JoinColumn(name="project_id")
     Project project;
+    
+    @Column(name = "LAST_SYNC_DATE",nullable = false)
+    @Temporal(TemporalType.TIMESTAMP)
+    Date lastSyncDate;
+    
+    @Column(name = "DELETED")
+    boolean deleted;
 
     public Project getProject() {
         return project;
@@ -81,8 +92,18 @@ public class Job extends BaseCustomEntity {
     }
     
     public boolean isDeleted() {
-        Boolean deleted = getCustomData(DELETED);
-        return deleted!=null && deleted;
+        return deleted;
+    }
+    
+    public void setDeleted(boolean deleted) {
+        this.deleted = deleted;
+    }
+    
+    public Date getLastSyncDate() {
+        return lastSyncDate;
+    }
+    public void setLastSyncDate(Date lastSyncDate) {
+        this.lastSyncDate = lastSyncDate;
     }
     
     @Override
@@ -96,5 +117,5 @@ public class Job extends BaseCustomEntity {
     protected SortedMap<EmbeddableKey, EmbeddablePrimitiveContainer> getMap() {
         return getInnerCustomMap();
     }
-    
+   
 }

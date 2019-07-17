@@ -255,12 +255,12 @@ public abstract class BaseCustomEntity extends BaseEntity {
     }
     
     @SuppressWarnings("unchecked")
-    public <X> X getCustomData(String key) {
+    public final <X> X getCustomData(String key) {
         initViewMap();
         return (X) viewMap.get(key);
     }
     
-    public <X> void setCustomData(String key, X value) {
+    public final <X> void setCustomData(String key, X value) {
         initViewMap();
         viewMap.put(key, value);
     }
