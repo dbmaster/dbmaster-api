@@ -4,10 +4,10 @@ import static com.branegy.dbmaster.model.Column.QUERY_FIND_ALL_BY_MODELNAME;
 import static com.branegy.dbmaster.model.Column.QUERY_FIND_ALL_COUNT_BY_MODELNAME;
 import static com.branegy.dbmaster.model.Column.QUERY_FIND_ALL_COUNT_LESS_BY_MODELNAME;
 import static com.branegy.dbmaster.model.Column.QUERY_FIND_BY_MODELOBJECTNAME;
-import static com.branegy.persistence.custom.EmbeddableKey.CLAZZ_COLUMN;
-import static com.branegy.persistence.custom.EmbeddableKey.ENTITY_ID_COLUMN;
+import static com.branegy.persistence.custom.EmbeddableObject.CLAZZ_COLUMN;
+import static com.branegy.persistence.custom.EmbeddableObject.ENTITY_ID_COLUMN;
 
-import java.util.SortedMap;
+import java.util.List;
 
 import javax.persistence.Access;
 import javax.persistence.AccessType;
@@ -37,8 +37,7 @@ import org.hibernate.annotations.SortNatural;
 import org.hibernate.annotations.Where;
 
 import com.branegy.persistence.custom.CustomFieldDiscriminator;
-import com.branegy.persistence.custom.EmbeddableKey;
-import com.branegy.persistence.custom.EmbeddablePrimitiveContainer;
+import com.branegy.persistence.custom.EmbeddableObject;
 import com.branegy.persistence.custom.FetchAllObjectIdByProjectSql;
 
 @Entity
@@ -242,7 +241,7 @@ public class Column extends DatabaseObject<ModelObject> {
     @Where(clause=CLAZZ_COLUMN+" = '"+CUSTOM_FIELD_DISCRIMINATOR+"'")
     @SortNatural
     @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
-    protected SortedMap<EmbeddableKey, EmbeddablePrimitiveContainer> getMap() {
-        return getInnerCustomMap();
+    protected List<EmbeddableObject> getCustom() {
+        return getInnerCustomList();
     }
 }

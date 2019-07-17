@@ -6,6 +6,7 @@ import java.time.Instant;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.Objects;
 
 import javax.persistence.Column;
 import javax.persistence.Embeddable;
@@ -14,17 +15,36 @@ import javax.persistence.PreUpdate;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
+import com.branegy.persistence.CurrentUserService;
+
 @Embeddable
-public class EmbeddablePrimitiveContainer {
+public class EmbeddableObject implements Comparable<EmbeddableObject> {
     private static final Date unknown = new Date(0);
+    
+    public static final String ENTITY_ID_COLUMN = "ENTITY_ID";
+    public static final String CLAZZ_COLUMN     = "ENTITY_TYPE";
+    public static final String KEY_COLUMN       = "FIELD_NAME";
+    public static final String ORDER_COLUMN     = "VALUE_ORDER";
     
     public static final String BOOLEAN_COLUMN = "FLAG_VALUE";
     public static final String DATE_COLUMN    = "TIME_VALUE";
     public static final String DOUBLE_COLUMN  = "FLOAT_VALUE";
     public static final String LONG_COLUMN    = "INT_VALUE";
     public static final String TEXT_COLUMN    = "TEXT_VALUE";
-
     
+    @Column(name = CLAZZ_COLUMN, nullable = false, updatable = false)
+    private String entityType;
+    
+    @Column(name = KEY_COLUMN, nullable = false)
+    private String fieldName;
+
+    @Column(name = ORDER_COLUMN)
+    // min = 0
+    // max = 2^15-1
+    private int valueOrder;
+    
+    
+    //==========
     @Column(name = TEXT_COLUMN, length=4*1024*1024)
     private String text;
     
@@ -46,23 +66,46 @@ public class EmbeddablePrimitiveContainer {
     private Date updatedAt = unknown;
 
     @Column(name="UPDATED_BY",length = UPDATE_AUTHOR_LENGTH)
-    private String updatedBy = "unknown";
-
-    EmbeddablePrimitiveContainer() {
+    private String updatedBy;
+    
+    
+    EmbeddableObject() {
     }
 
-    public EmbeddablePrimitiveContainer(Object object) {
+    public EmbeddableObject(String fieldName, int valueOrder, String entityType, Object object) {
+        this.fieldName = fieldName;
+        this.valueOrder = valueOrder;
+        this.entityType = entityType;
+        setObject(object);
+    }
+
+    @Override
+    public int compareTo(EmbeddableObject o) {
+        int cmp = fieldName.compareTo(o.fieldName);
+        if (cmp == 0) {
+            cmp = valueOrder-o.valueOrder;
+        }
+        return cmp;
+    }
+
+    public final String getFieldName() {
+        return fieldName;
+    }
+
+    public final int getValueOrder() {
+        return valueOrder;
+    }
+
+    public EmbeddableObject(Object object) {
         setObject(object);
     }
     
-    // TODO hibernate bug
     @PrePersist
     @PreUpdate
-    public final void preUpdate() {
-        //updatedBy = CurrentUserService.getCurrentUser(UPDATE_AUTHOR_LENGTH);
-        //updatedAt = new Date();
+    protected void preUpdate() {
+        updatedBy = CurrentUserService.getCurrentUser(UPDATE_AUTHOR_LENGTH);
+        updatedAt = new Date();
     }
-    
 
     public Object getObject() {
         if (text != null) {
@@ -139,22 +182,36 @@ public class EmbeddablePrimitiveContainer {
     public boolean equals(Object obj) {
         if (this == obj) {
             return true;
-        } else if (!(obj instanceof EmbeddablePrimitiveContainer)) {
+        }
+        if (obj == null) {
             return false;
         }
-        EmbeddablePrimitiveContainer other = (EmbeddablePrimitiveContainer) obj;
-        return getObject().equals(other.getObject());
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        EmbeddableObject other = (EmbeddableObject) obj;
+        return    valueOrder == other.valueOrder
+                && Objects.equals(entityType, other.entityType)
+                && Objects.equals(fieldName, other.fieldName)
+                
+                && Objects.equals(booleanValue, other.booleanValue)
+                && Objects.equals(date, other.date)
+                && Objects.equals(doubleValue, other.doubleValue)
+                && Objects.equals(longValue, other.longValue)
+                && Objects.equals(text, other.text);
     }
 
     @Override
     public int hashCode() {
-        return getObject().hashCode();
+        int hash = Objects.hash(entityType, fieldName, booleanValue, date, doubleValue, longValue, text);
+        hash = 31 * hash + valueOrder;
+        return hash;
     }
 
     @Override
     public String toString() {
         Object obj = getObject();
-        return obj.getClass().getSimpleName() + ":" + obj;
+        return getFieldName()+"="+obj.getClass().getSimpleName() + ":" + obj;
     }
 
     public static boolean isSupportWrap(Object object) {

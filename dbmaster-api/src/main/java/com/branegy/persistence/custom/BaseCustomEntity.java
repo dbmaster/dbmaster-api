@@ -1,17 +1,15 @@
 package com.branegy.persistence.custom;
 
 import java.util.AbstractMap;
+import java.util.AbstractSet;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
+import java.util.ConcurrentModificationException;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
-import java.util.SortedMap;
-import java.util.TreeMap;
 import java.util.function.BiConsumer;
 
 import javax.persistence.MappedSuperclass;
@@ -24,26 +22,26 @@ public abstract class BaseCustomEntity extends BaseEntity {
     public static final String CUSTOMFIELD_VALUE_TABLE  = "CUSTOMFIELD_VALUE";
 
     @Transient
-    private SortedMap<EmbeddableKey,EmbeddablePrimitiveContainer> map;
+    private List<EmbeddableObject> custom;
    
     @Transient
-    private Map<String,Object> viewMap;
+    private Map<String,Object> customMapView;
     
     
-    protected final SortedMap<EmbeddableKey,EmbeddablePrimitiveContainer> getInnerCustomMap(){
-        return this.map;
+    protected final List<EmbeddableObject> getInnerCustomList(){
+        return this.custom;
     }
-    protected abstract SortedMap<EmbeddableKey,EmbeddablePrimitiveContainer> getMap();
+    protected abstract List<EmbeddableObject> getCustom();
    
     // hibernate setter
     @SuppressWarnings("unused")
-    private void setMap(SortedMap<EmbeddableKey, EmbeddablePrimitiveContainer> map) {
-        this.map = map;
+    private void setCustom(List<EmbeddableObject> list) {
+        this.custom = list;
     }
    
     
     public final boolean hasCustomProperties() {
-        return !map.isEmpty();
+        return !custom.isEmpty();
     }
 
     public final void forEachCustomData(BiConsumer<String, Object> consumer) {
@@ -83,190 +81,310 @@ public abstract class BaseCustomEntity extends BaseEntity {
 
     @Override
     public String toString() {
-        return super.toString()+ (map!=null?" "+map:"");
+        return super.toString()+ (custom!=null?" "+custom:"");
     }
     
-    private SortedMap<EmbeddableKey, EmbeddablePrimitiveContainer> getSubMapByKey(String key) {
-        return map.subMap(
-                new EmbeddableKey(key, 0, null),
-                new EmbeddableKey(key, Integer.MAX_VALUE, null));
-    }
-    
-    @SuppressWarnings("unchecked")
     private void initViewMap() {
-        if (viewMap == null) {
-            if (map == null) {
-                map = new TreeMap<>();
+        if (customMapView == null) {
+            if (custom == null) {
+                custom = new ArrayList<>();
             }
-            Map<String, Object> innerMap = new HashMap<String, Object>();
-            String prevKey = null;
-            int count = 0;
-            for (Entry<EmbeddableKey, EmbeddablePrimitiveContainer> e:map.entrySet()) {
-                EmbeddableKey ekey = e.getKey();
-                String key = ekey.getFieldName();
-                if (prevKey!=null && !prevKey.equals(key)) {
-                    if (count>1) {
-                        innerMap.compute(prevKey, (k,v)->Collections.unmodifiableList((List<Object>) v));
-                    }
-                    count = 0;
+            customMapView = new AbstractMap<String, Object>(){
+                int size = -1;
+                int modCount = 0;
+                Set<Entry<String, Object>> viewSet;
+                
+                final void checkForComodification(int expectedModCount) {
+                    if (modCount != expectedModCount)
+                        throw new ConcurrentModificationException();
                 }
                 
-                Object object = e.getValue().getObject();
-                innerMap.compute(key, (k,v)->{
-                    if (v == null) {
-                        return object;
-                    } else {
-                        List<Object> result = new ArrayList<>(); // change
-                        result.add(v);
-                        result.add(object);
-                        return result;
+                private int calcSize() {
+                    if (size == -1){
+                        size = (int) custom.stream().map(EmbeddableObject::getFieldName).distinct().count();
                     }
-                });
-                prevKey = key;
-                count++;
-            }
-            if (prevKey!=null) {
-                if (count>1) {
-                    innerMap.compute(prevKey, (k,v)->Collections.unmodifiableList((List<Object>) v));
+                    return size;
                 }
-            }
-            viewMap = new AbstractMap<String, Object>() {
-                @Override
-                public Set<Entry<String, Object>> entrySet() {
-                    return innerMap.entrySet();
+                
+                private int binaryIndexOf(String key) {
+                    int low = 0;
+                    int high = custom.size()-1;
+                    
+                    while (low <= high) {
+                        int mid = (low + high) >>> 1;
+                        EmbeddableObject midVal = custom.get(mid);
+                        int cmp = midVal.getFieldName().compareTo(key);
+                        if (cmp < 0) {
+                            low = mid + 1;
+                        } else if (cmp > 0) {
+                            high = mid - 1;
+                        } else {
+                            return mid; // key found
+                        }
+                    }
+                    return -(low + 1);  // key not found
                 }
-
+                
+                private int lower(int index) { // TODO n log n
+                    EmbeddableObject object = custom.get(index);
+                    String key = object.getFieldName();
+                    int i=index;
+                    while (i>0 && custom.get(i-1).getFieldName().equals(key)) {
+                        i--;
+                    }
+                    return i;
+                }
+                
+                private int upper(int index) { // TODO n log n
+                    /*EmbeddableObject object = map.get(index);
+                    String key = object.getFieldName();
+                    
+                    int low = index+1;
+                    int high = Math.min(0xFF_FF-object.getValueOrder()+low, map.size())-1;
+                    int mid = low;
+                    while (low <= high) {
+                        EmbeddableObject midVal = map.get(mid);
+                        int cmp = midVal.getFieldName().compareTo(key);
+                        if (cmp == 0) {
+                            cmp = midVal.getValueOrder()-0;
+                        }
+                        
+                        if (cmp < 0) {
+                            low = mid + 1;
+                        } else if (cmp > 0) {
+                            high = mid - 1;
+                        } else {
+                            return mid; // key found
+                        }
+                        mid = (low + high) >>> 1;
+                    }
+                    return -(low + 1);  // key not found
+                    */
+                    
+                    if (index >= custom.size()) {
+                        return index;
+                    }
+                    
+                    EmbeddableObject object = custom.get(index);
+                    String key = object.getFieldName();
+                    int i=index;
+                    while (i<custom.size() && custom.get(i).getFieldName().equals(key)) {
+                        i++;
+                    }
+                    return i;
+                }
+                
+                private Object convertToObject(int fromINdex, int toIndex) {
+                    if (fromINdex+1 == toIndex) {
+                        return custom.get(fromINdex).getObject();
+                    } else {
+                        List<Object> result = new ArrayList<>(toIndex-fromINdex); // TODO collection view?
+                        for (int i=fromINdex; i<toIndex; ++i) {
+                            result.add(custom.get(i).getObject());
+                        }
+                        return Collections.unmodifiableList(result);
+                    }
+                }
+                
                 @Override
                 public int size() {
-                    return innerMap.size();
+                    return calcSize();
                 }
 
                 @Override
                 public boolean isEmpty() {
-                    return map.isEmpty();
+                    return custom.isEmpty();
                 }
 
                 @Override
                 public boolean containsValue(Object value) {
-                    return innerMap.containsValue(value);
+                    if (value == null) {
+                        return false;
+                    }
+                    for (EmbeddableObject eo: custom) {
+                        if (value.equals(eo.getObject())) {
+                            return true;
+                        }
+                    }
+                    return false;
                 }
 
                 @Override
                 public boolean containsKey(Object key) {
-                    return innerMap.containsKey(key);
+                    if (key == null || key.getClass()!=String.class) {
+                        return false;
+                    } 
+                    return binaryIndexOf((String) key) >= 0;
                 }
 
                 @Override
                 public Object get(Object key) {
-                    return innerMap.get(key);
+                    if (key == null || key.getClass()!=String.class) {
+                        return null;
+                    } 
+                    int index = binaryIndexOf((String) key);
+                    if (index<0) {
+                       return null; 
+                    }
+                    
+                    int fromIndex = lower(index);
+                    int toIndex = upper(index);
+                    
+                    return convertToObject(fromIndex, toIndex);
                 }
                 
-                // TODO recalculate indexes!
-                // TODO on arrays changes 
-                private Object merge(
-                        String key,
-                        Iterator<Object> valuesIt, 
-                        Iterator<Entry<EmbeddableKey, EmbeddablePrimitiveContainer> > containerIt) {
-                    int lastIndex = 0;
-                    int count = 0;
-                    Object result = null;
-                    while(valuesIt.hasNext() && containerIt.hasNext()) {
-                        Entry<EmbeddableKey, EmbeddablePrimitiveContainer> next = containerIt.next();
-                        Object next2 = valuesIt.next();
-                        next.getValue().setObject(next2);
-                        lastIndex = next.getKey().getValueOrder()+1;
-                        if (count == 0) {
-                            result = next2;
-                        } else if (count == 1) {
-                            List<Object> resultList = new ArrayList<>(); 
-                            resultList.add(count);
-                            resultList.add(next2);
-                            result = resultList;
-                        } else {
-                            ((List<Object>)result).add(next2);
-                        }
-                        count++;
-                    }
-                    while (valuesIt.hasNext()) {
-                        Object next2 = valuesIt.next();
-                        map.put(new EmbeddableKey(key, lastIndex++, getDiscriminator()),
-                                new EmbeddablePrimitiveContainer(next2));
-                        if (count == 0) {
-                            result = next2;
-                        } else if (count == 1) {
-                            List<Object> resultList = new ArrayList<>(); // change
-                            resultList.add(count);
-                            resultList.add(next2);
-                            result = resultList;
-                        } else {
-                            ((List<Object>)result).add(next2);
-                        }
-                        count++;
-                    }
-                    if (count>1) {
-                        result = Collections.unmodifiableList((List<Object>) result);
-                    }
-                    while (containerIt.hasNext()) {
-                        containerIt.remove();
-                        containerIt.next();
-                    }
-                    return innerMap.put(key, result);
-                }
-                
-
                 @Override
                 public Object put(String key, Object value) {
-                    if (value == null) {
+                    if (value == null){
                         return remove(key);
                     }
-                    return innerMap.compute(key, (k,v)->{
-                        Iterator<Object> valuesIt;
+                    
+                    int index = binaryIndexOf(key);
+                    modCount++;
+                    if (index < 0) { // insert
+                        size++;
+                        String discriminator = getDiscriminator();
+                        index = -(index+1);
                         if (value instanceof Collection<?>) {
-                            valuesIt = ((Collection<Object>)value).iterator();
+                            Collection<?> c = (Collection<?>) value;
+                            List<EmbeddableObject> newList = new ArrayList<>(c.size());
+                            int i=0;
+                            for (Object o:c) {
+                                newList.add(new EmbeddableObject(key, i++, discriminator,o));
+                            }
+                            custom.addAll(index, newList);
                         } else {
-                            valuesIt = Collections.singleton(value).iterator();
+                            custom.add(index, new EmbeddableObject(key, 0, discriminator,value));
                         }
-                        Iterator<Entry<EmbeddableKey, EmbeddablePrimitiveContainer>> containerIt;
-                        if (v == null) { // no previous, simple add
-                            containerIt = Collections.emptyIterator();
-                        } else { // collection | simple value
-                            containerIt = getSubMapByKey(key).entrySet().iterator();
+                        return null;
+                    } else { // update 
+                        // TODO update index + merge
+                        int from = lower(index);
+                        int to = upper(index);
+                        
+                        Object oldValue = convertToObject(from, to);
+                        List<EmbeddableObject> subList = custom.subList(from, to);
+                        subList.clear();
+                        String discriminator = getDiscriminator();
+                        if (value instanceof Collection<?>) {
+                            Collection<?> c = (Collection<?>) value;
+                            List<EmbeddableObject> newList = new ArrayList<>(c.size());
+                            int i=0;
+                            for (Object o:c) {
+                                newList.add(new EmbeddableObject(key, i++, discriminator,o));
+                            }
+                            custom.addAll(from, newList);
+                        } else {
+                            subList.add(from, new EmbeddableObject(key, 0, discriminator,value));
                         }
-                        return merge(key, valuesIt, containerIt);
-                    });
+                        return oldValue;
+                    }
                 }
-
+                
                 @Override
                 public Object remove(Object key) {
-                    Object remove = innerMap.remove(key);
-                    if (remove!=null) {
-                        getSubMapByKey(key.toString()).clear();
+                    if (key == null || key.getClass()!=String.class) {
+                        return null;
+                    } 
+                    int index = binaryIndexOf((String) key);
+                    if (index < 0) {
+                        return null;
                     }
-                    return remove;
+                    
+                    int from = lower(index);
+                    int to = upper(index);
+                    Object oldValue = convertToObject(from, to);
+                    removeExists(from, to);
+                    return oldValue;
+                }
+
+                private void removeExists(int fromIndex, int toIndex) {
+                    if (fromIndex + 1 == toIndex){
+                        custom.remove(fromIndex);
+                    } else {
+                        List<EmbeddableObject> subList = custom.subList(fromIndex, toIndex);
+                        subList.clear();
+                    }
+                    modCount++;
+                    --size;
+                }
+                
+                @Override
+                public void clear() {
+                    modCount++;
+                    custom.clear();
                 }
 
                 @Override
-                public void clear() {
-                    map.clear();
-                    innerMap.clear();
+                public Set<Entry<String, Object>> entrySet() {
+                    if (viewSet == null) {
+                        viewSet = new AbstractSet<Map.Entry<String,Object>>() {
+                            @Override
+                            public Iterator<Entry<String, Object>> iterator() {
+                                if (custom.isEmpty()) {
+                                    return Collections.emptyIterator();
+                                }
+                                return new Iterator<Map.Entry<String,Object>>() {
+                                    final int expectedModCount = modCount;
+                                    // int status = unitinted, inited, removed
+                                    int fromIndex = 0;
+                                    int toIndex = upper(fromIndex);
+                                    
+                                    @Override
+                                    public Entry<String, Object> next() {
+                                        checkForComodification(expectedModCount);
+                                        Object obj = convertToObject(fromIndex,toIndex);
+                                        String key = custom.get(fromIndex).getFieldName();
+                                        fromIndex = toIndex;
+                                        toIndex = upper(toIndex);
+                                        return new SimpleEntry<>(key, obj);
+                                    }
+                                    
+                                    @Override
+                                    public boolean hasNext() {
+                                        checkForComodification(expectedModCount);
+                                        return fromIndex < custom.size();
+                                    }
+                                    
+                                    @Override
+                                    public void remove() {
+                                        /*checkForComodification(expectedModCount);
+                                        if (fromIndex>=map.size()) {
+                                            throw new IllegalStateException();
+                                        }
+                                        removeExists(fromIndex, toIndex);
+                                        expectedModCount++;
+                                        fromIndex = toIndex;
+                                        toIndex = upper(toIndex);*/
+                                        Iterator.super.remove(); // TODO implement
+                                    }
+                                };
+                            }
+                            @Override
+                            public int size() {
+                                return calcSize();
+                            }
+                        };
+                    }
+                    return viewSet;
                 }
-            };
+            }; 
         }
     }
     
     @SuppressWarnings("unchecked")
     public <X> X getCustomData(String key) {
         initViewMap();
-        return (X) viewMap.get(key);
+        return (X) customMapView.get(key);
     }
     
-    public <X> void setCustomData(String key, X value) {
+    public void setCustomData(String key, Object value) {
         initViewMap();
-        viewMap.put(key, value);
+        customMapView.put(key, value);
     }
     
-    public final Map<String,Object> getCustomMap(){
+    public Map<String,Object> getCustomMap(){
         initViewMap();
-        return viewMap;
+        return customMapView;
     }
 }

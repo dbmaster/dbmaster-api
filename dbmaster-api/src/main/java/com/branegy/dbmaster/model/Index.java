@@ -1,11 +1,10 @@
 package com.branegy.dbmaster.model;
 
-import static com.branegy.persistence.custom.EmbeddableKey.CLAZZ_COLUMN;
-import static com.branegy.persistence.custom.EmbeddableKey.ENTITY_ID_COLUMN;
+import static com.branegy.persistence.custom.EmbeddableObject.CLAZZ_COLUMN;
+import static com.branegy.persistence.custom.EmbeddableObject.ENTITY_ID_COLUMN;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.SortedMap;
 
 import javax.persistence.Access;
 import javax.persistence.AccessType;
@@ -25,14 +24,15 @@ import javax.validation.constraints.Size;
 import org.hibernate.annotations.BatchSize;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 import org.hibernate.annotations.SortNatural;
 import org.hibernate.annotations.Where;
 
 import com.branegy.persistence.custom.CustomFieldDiscriminator;
-import com.branegy.persistence.custom.EmbeddableKey;
-import com.branegy.persistence.custom.EmbeddablePrimitiveContainer;
+import com.branegy.persistence.custom.EmbeddableObject;
 import com.branegy.persistence.custom.FetchAllObjectIdByProjectSql;
 
 @Entity
@@ -91,6 +91,7 @@ public class Index extends DatabaseObject<ModelObject>{
     @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
     @BatchSize(size=100)
     @CollectionTable(name="index_columns")
+    @Fetch(value = FetchMode.SUBSELECT) // TODO https://hibernate.atlassian.net/browse/HHH-1718
     List<IndexColumn> columns;
 
     @Embeddable
@@ -244,7 +245,7 @@ public class Index extends DatabaseObject<ModelObject>{
     @Where(clause=CLAZZ_COLUMN+" = '"+CUSTOM_FIELD_DISCRIMINATOR+"'")
     @SortNatural
     @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
-    protected SortedMap<EmbeddableKey, EmbeddablePrimitiveContainer> getMap() {
-        return getInnerCustomMap();
+    protected List<EmbeddableObject> getCustom() {
+        return getInnerCustomList();
     }
 }

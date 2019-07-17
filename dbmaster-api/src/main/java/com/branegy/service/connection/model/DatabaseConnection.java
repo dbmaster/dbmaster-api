@@ -1,7 +1,7 @@
 package com.branegy.service.connection.model;
 
-import static com.branegy.persistence.custom.EmbeddableKey.CLAZZ_COLUMN;
-import static com.branegy.persistence.custom.EmbeddableKey.ENTITY_ID_COLUMN;
+import static com.branegy.persistence.custom.EmbeddableObject.CLAZZ_COLUMN;
+import static com.branegy.persistence.custom.EmbeddableObject.ENTITY_ID_COLUMN;
 import static com.branegy.service.connection.model.DatabaseConnection.QUERY_CONNECTION_FIND;
 import static com.branegy.service.connection.model.DatabaseConnection.QUERY_CONNECTION_FIND_ALL_ENABLED_BY_PROJECT;
 import static com.branegy.service.connection.model.DatabaseConnection.QUERY_CONNECTION_FIND_ALL_ENABLED_COUNT;
@@ -13,8 +13,8 @@ import static com.branegy.service.connection.model.DatabaseConnection.QUERY_CONN
 import java.io.Serializable;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 import java.util.Properties;
-import java.util.SortedMap;
 
 import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
@@ -53,8 +53,7 @@ import com.google.inject.name.Named;
 import com.branegy.dbmaster.core.Project;
 import com.branegy.persistence.custom.BaseCustomEntity;
 import com.branegy.persistence.custom.CustomFieldDiscriminator;
-import com.branegy.persistence.custom.EmbeddableKey;
-import com.branegy.persistence.custom.EmbeddablePrimitiveContainer;
+import com.branegy.persistence.custom.EmbeddableObject;
 import com.branegy.persistence.custom.FetchAllObjectIdByProjectSql;
 import com.branegy.persistence.xml.XmlBlobArray;
 
@@ -328,7 +327,7 @@ public class DatabaseConnection extends BaseCustomEntity {
     @Where(clause=CLAZZ_COLUMN+" = '"+CUSTOM_FIELD_DISCRIMINATOR+"'")
     @SortNatural
     @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
-    protected SortedMap<EmbeddableKey, EmbeddablePrimitiveContainer> getMap() {
-        return getInnerCustomMap();
+    protected List<EmbeddableObject> getCustom() {
+        return getInnerCustomList();
     }
 }

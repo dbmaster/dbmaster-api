@@ -1,11 +1,10 @@
 package com.branegy.dbmaster.model;
 
-import static com.branegy.persistence.custom.EmbeddableKey.CLAZZ_COLUMN;
-import static com.branegy.persistence.custom.EmbeddableKey.ENTITY_ID_COLUMN;
+import static com.branegy.persistence.custom.EmbeddableObject.CLAZZ_COLUMN;
+import static com.branegy.persistence.custom.EmbeddableObject.ENTITY_ID_COLUMN;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.SortedMap;
 
 import javax.persistence.Access;
 import javax.persistence.AccessType;
@@ -23,8 +22,7 @@ import org.hibernate.annotations.SortNatural;
 import org.hibernate.annotations.Where;
 
 import com.branegy.persistence.custom.CustomFieldDiscriminator;
-import com.branegy.persistence.custom.EmbeddableKey;
-import com.branegy.persistence.custom.EmbeddablePrimitiveContainer;
+import com.branegy.persistence.custom.EmbeddableObject;
 import com.branegy.persistence.custom.FetchAllObjectIdByProjectSql;
 
 @Entity
@@ -102,7 +100,7 @@ public class View extends ModelObject {
     @BatchSize(size = 100)
     @Where(clause=CLAZZ_COLUMN+" = '"+CUSTOM_FIELD_DISCRIMINATOR+"'")
     @SortNatural
-    protected SortedMap<EmbeddableKey, EmbeddablePrimitiveContainer> getMap() {
-        return getInnerCustomMap();
+    protected List<EmbeddableObject> getCustom() {
+        return getInnerCustomList();
     }
 }
