@@ -5,14 +5,21 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Objects;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 
 import com.google.common.base.Preconditions;
 
 import com.branegy.dbmaster.sync.api.SyncPair.ChangeType;
+import com.branegy.dbmaster.util.NameMap;
 import com.branegy.dbmaster.util.StringLogger;
 
 public abstract class SyncSession {
@@ -30,7 +37,7 @@ public abstract class SyncSession {
     protected final Date lastSyncDate = new Date();
     
     public static enum SearchTarget { SOURCE, TARGET };
-
+    
     public SyncSession(Comparer compararer) {
         this(compararer, null);
     }
@@ -160,6 +167,262 @@ public abstract class SyncSession {
         searchBin.target = target;
         findObject(searchBin,getSyncResult(), "");
         return searchBin.results;
+    }
+    
+    
+    private static class AutoRenameBin{
+        List<SyncPair> deletedSyncPair = new ArrayList<>();
+        List<SyncPair> newSyncPair = new ArrayList<>();
+    }
+    
+    
+    private void traversalRename(List<AutoRenameBin> result, SyncPair pair, String objectType) {
+        AutoRenameBin current = null;
+        for (SyncPair child:pair.getChildren()) {
+            if (objectType.equals(child.getObjectType())) { // TODO filter ?
+                if (current == null) {
+                    current = new AutoRenameBin();
+                }
+                if (child.getChangeType() == ChangeType.NEW) {
+                    current.newSyncPair.add(child);
+                } else if (child.getChangeType() == ChangeType.DELETED) {
+                    current.deletedSyncPair.add(child);
+                }
+            } else if (current==null) {
+                traversalRename(result,child,objectType); 
+            }
+        }
+        if (current!=null) {
+            result.add(current);
+        }
+    }
+    
+    private boolean different(List<SyncPair> pairs) {
+        for (int i=0, len = pairs.size(); i<len; ++i) {
+            for (int j=i+1; j<len;++j) {
+                if (deepEqualsSyncPair(pairs.get(i), pairs.get(j))) {
+                    logger.warn("Can't process mapping: {} is similar to {}",pairs.get(i).getSourceName(),
+                            pairs.get(j).getTargetName());
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+    
+    private void onlyDifferent(List<SyncPair> pairs) {
+        for (int i=0; i<pairs.size(); ++i) {
+            for (int j=i+1; j<pairs.size();++j) {
+                if (deepEqualsSyncPair(pairs.get(i), pairs.get(j))) {
+                    pairs.remove(j);
+                    pairs.remove(i);
+                    --i;
+                    break;
+                }
+            }
+        }
+    }
+    
+    private static <T> NameMap<T> toMap(List<T> list,Function<T, String> getName){
+        NameMap<T> map = list.stream().collect(
+                Collectors.toMap(
+                    getName,
+                    Function.identity(),
+                    (u,v) -> { 
+                        throw new IllegalStateException(String.format("Duplicate key %s", u)); 
+                    },
+                    NameMap<T>::new)
+            );
+        return map;
+    }
+    
+    private static final boolean deepEqualsSyncPair(SyncPair source, SyncPair target) {
+        /*if (compareName) {
+            boolean result;
+            if (source.isCaseSensitive() || target.isCaseSensitive() || 
+                   (source.getParentPair()!=null && source.getParentPair().isCaseSensitive()) ||
+                   (target.getParentPair()!=null && target.getParentPair().isCaseSensitive())) {
+                result = source.getSourceName().equals(target.getTargetName());
+            } else {
+                result = source.getSourceName().equalsIgnoreCase(target.getTargetName());
+            }
+            if (!result) {
+                return false;
+            }
+        }*/
+        
+        NameMap<SyncAttributePair> sourceAttrs = toMap(source.getAttributes(),
+                SyncAttributePair::getAttributeName);
+        NameMap<SyncAttributePair> targetAttrs = toMap(target.getAttributes(),
+                SyncAttributePair::getAttributeName);
+        
+        if (sourceAttrs.size()!=targetAttrs.size()) {
+            return false;
+        }
+        if (sourceAttrs.entrySet().stream().filter( e->{ 
+            String key = e.getKey();
+            Object v1 = e.getValue().getSourceValue();
+            Object v2 = targetAttrs.get(key).getTargetValue();
+            if (v2 == null && !targetAttrs.containsKey(key)) {
+                return true;
+            }
+            return !Objects.equals(v1, v2);
+        }).findFirst().isPresent()) {
+            return false;
+        }
+        
+        Function<SyncPair, String> getName = p -> {
+            if (p.getChangeType() == ChangeType.NEW) {
+                return p.getTargetName();
+            } else if (p.getChangeType() == ChangeType.DELETED) {
+                return p.getSourceName();
+            } else {
+                throw new IllegalArgumentException("Unknown sync type");
+            }
+        };
+        NameMap<SyncPair> sourcePairs = toMap(source.getChildren(), getName);
+        NameMap<SyncPair> targetPairs = toMap(target.getChildren(), getName);
+        
+        if (sourcePairs.size()!=targetPairs.size()) {
+            return false;
+        }
+        
+        if (sourcePairs.entrySet().stream().filter(e->{ 
+            String key = e.getKey();
+            SyncPair childSource = e.getValue();
+            SyncPair childTarget = targetPairs.get(key);
+            if (childTarget == null) { //  && !targetPairs.containsKey(key)
+                return true;
+            }
+            return !deepEqualsSyncPair(childSource,childTarget);
+        }).findFirst().isPresent()) {
+            return false;
+        }
+        return true;
+    }
+    
+    
+    // one parent
+    // different name
+    public final List<SyncPair> autoRename(String objectType, String filter){
+        List<AutoRenameBin> renameBins = new ArrayList<>();
+        traversalRename(renameBins, getSyncResult(), objectType);
+        
+        List<SyncPair> result = new ArrayList<>();
+        for (AutoRenameBin bin:renameBins) {
+            
+            if (!different(bin.deletedSyncPair)) {
+                continue;
+            }
+            if (!different(bin.newSyncPair)) {
+                continue;
+            }
+            
+            Iterator<SyncPair> deletedIt = bin.deletedSyncPair.iterator();
+            while (deletedIt.hasNext()){
+                SyncPair deletedPair = deletedIt.next();
+                Iterator<SyncPair> newIt = bin.newSyncPair.iterator();
+                while (newIt.hasNext()) {
+                    SyncPair newPair = newIt.next();
+                    if (deepEqualsSyncPair(deletedPair, newPair)) {
+                        deletedIt.remove();
+                        newIt.remove();
+                        
+                        SyncPair parent = deletedPair.getParentPair();
+                        SyncPair pair = new SyncPair(parent, deletedPair.getSource(), newPair.getTarget());
+                        
+                        Iterator<SyncPair> it = parent.getChildren().iterator();
+                        int count = 0;
+                        while (it.hasNext()) {
+                            SyncPair p = it.next();
+                            if (p == deletedPair || p == newPair) {
+                                it.remove();
+                                if (++count==2) {
+                                    break;
+                                }
+                            }
+                        }
+                        parent.getChildren().add(pair);
+                        pair.sync(this);
+                        result.add(pair);
+                        break;
+                    }
+                }
+            }
+        }
+        return result;
+    }
+    
+    private static class AutoMoveBin{
+        Map<String,List<SyncPair>> deletedSyncPair = new LinkedHashMap<>();
+        Map<String,List<SyncPair>> newSyncPair = new LinkedHashMap<>();
+    }
+    
+    private void traversalMove(AutoMoveBin current, SyncPair pair, String objectType) {
+        for (SyncPair child:pair.getChildren()) {
+            if (objectType.equals(child.getObjectType())) { // TODO filter ?
+                if (child.getChangeType() == ChangeType.NEW) {
+                    current.newSyncPair.computeIfAbsent(child.getTargetName(),(k)-> new ArrayList<>()).add(child);
+                } else if (child.getChangeType() == ChangeType.DELETED) {
+                    current.deletedSyncPair.computeIfAbsent(child.getSourceName(),(k)-> new ArrayList<>()).add(child);
+                }
+            } else {
+                traversalMove(current,child,objectType); 
+            }
+        }
+    }
+    
+    // different parent
+    // some name
+    public final List<SyncPair> autoMove(String objectType, String filter){
+        AutoMoveBin bin = new AutoMoveBin();
+        traversalMove(bin, getSyncResult(), objectType);
+        
+        List<SyncPair> result = new ArrayList<>();
+        for (Entry<String,List<SyncPair>> e:bin.deletedSyncPair.entrySet()) {
+            String key = e.getKey();
+            List<SyncPair> deletedPairs = e.getValue();
+            List<SyncPair> newPairs = bin.newSyncPair.get(key);
+            if (newPairs == null) {
+                continue;
+            }
+            
+            onlyDifferent(deletedPairs);
+            onlyDifferent(newPairs);
+            
+            for (int i=0; i<deletedPairs.size(); ++i) {
+                for (int j=0; j<newPairs.size(); ++j) {
+                    if (deepEqualsSyncPair(deletedPairs.get(i), newPairs.get(j))) {
+                        // add move!
+                        SyncPair deletePair = deletedPairs.get(i);
+                        SyncPair newPair = newPairs.get(j);
+                        
+                        Iterator<SyncPair> it;
+                        it = deletePair.getParentPair().getChildren().iterator();
+                        while (it.hasNext()) {
+                            if (it.next() == deletePair) {
+                                it.remove();
+                                break;
+                            }
+                        }
+                        it = newPair.getParentPair().getChildren().iterator();
+                        while (it.hasNext()) {
+                            if (it.next() == newPair) {
+                                it.remove();
+                                break;
+                            }
+                        }
+                        SyncPair pair = new SyncPair(newPair.getParentPair(), 
+                                deletePair.getSource(),newPair.getTarget());
+                        newPair.getParentPair().getChildren().add(pair);
+                        pair.sync(this);
+                        result.add(pair);
+                        break;
+                    }
+                }
+            }
+        }
+        return result;
     }
     
     private void findObject(SearchBin searchBin, SyncPair pair, String path) {
