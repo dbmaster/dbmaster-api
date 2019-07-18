@@ -3,12 +3,12 @@ package com.branegy.tools.model;
 import static com.branegy.tools.model.ToolHistory.DELETE_PREPARED_JOB;
 import static com.branegy.tools.model.ToolHistory.FAIL_RUNNING_JOB;
 import static com.branegy.tools.model.ToolHistory.PRUNE_PROJECT_TOOLID_UPTODATE;
-import static com.branegy.tools.model.ToolHistory.XML_IMMUTABLE_TYPE;
 
 import java.util.Date;
 import java.util.Map;
 
 import javax.persistence.Column;
+import javax.persistence.Convert;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
@@ -16,7 +16,6 @@ import javax.persistence.FetchType;
 import javax.persistence.JoinColumn;
 import javax.persistence.Lob;
 import javax.persistence.ManyToOne;
-import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
@@ -26,72 +25,35 @@ import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
-import org.hibernate.annotations.Parameter;
-import org.hibernate.annotations.Type;
-import org.hibernate.annotations.TypeDef;
 
 import com.branegy.dbmaster.core.Project;
 import com.branegy.dbmaster.core.User;
 import com.branegy.persistence.BaseEntity;
-import com.branegy.persistence.xml.ImmutableXmlBlobType;
 import com.branegy.tools.api.ExportType;
 
 
 @Entity
 @Table(name="dbm_tool_history")
 @Cache(usage=CacheConcurrencyStrategy.READ_WRITE)
-@TypeDef(name=XML_IMMUTABLE_TYPE,typeClass=ImmutableXmlBlobType.class,parameters={
-    // for tool config alias
-    @Parameter(name = "alias.tool", value = "tool,com.branegy.tools.model.ToolConfig"),
-    @Parameter(name = "alias.parameter", value = "parameter,com.branegy.tools.model.Parameter"),
-    @Parameter(name = "alias.output", value = "output,com.branegy.tools.model.OutputEngine"),
-    
-    // output engine collection
-    @Parameter(name = "addImplicitCollection.output",
-        value = "com.branegy.tools.model.ToolConfig,outputEngines"),
-        
-    // for tool config attribute
-    @Parameter(name = "useAttributeFor.id", value = "com.branegy.tools.model.ToolConfig,id"),
-    @Parameter(name = "aliasAttribute.parentId",
-            value = "com.branegy.tools.model.ToolConfig,parentId,parent-tool"),
-    @Parameter(name = "useAttributeFor.title", value = "com.branegy.tools.model.ToolConfig,title"),
-    @Parameter(name = "useAttributeFor.hidden", value = "com.branegy.tools.model.ToolConfig,hidden"),
-    @Parameter(name = "useAttributeFor.projectTypes",value="com.branegy.tools.model.ToolConfig,projectTypes"),
-    
-    // for parameter attribute
-    @Parameter(name = "useAttributeFor.name", value = "com.branegy.tools.model.Parameter,name"),
-    @Parameter(name = "useAttributeFor.suggestion", value = "com.branegy.tools.model.Parameter,suggestion"),
-    @Parameter(name = "useAttributeFor.title", value = "com.branegy.tools.model.Parameter,title"),
-    @Parameter(name = "useAttributeFor.type", value = "com.branegy.tools.model.Parameter,type"),
-    @Parameter(name = "useAttributeFor.hidden", value = "com.branegy.tools.model.Parameter,hidden"),
-    @Parameter(name = "useAttributeFor.multiple", value = "com.branegy.tools.model.Parameter,multiple"),
-    @Parameter(name = "useAttributeFor.required", value = "com.branegy.tools.model.Parameter,required"),
-    @Parameter(name = "useAttributeFor.defaultValue",value="com.branegy.tools.model.Parameter,defaultValue"),
-    @Parameter(name = "useAttributeFor.disableSuggestionCache",
-        value = "com.branegy.tools.model.Parameter,disableSuggestionCache"),
-    @Parameter(name = "useAttributeFor.width", value = "com.branegy.tools.model.Parameter,width"),
-    @Parameter(name = "useAttributeFor.height", value = "com.branegy.tools.model.Parameter,height"),
-})
-@NamedQueries({
-    @NamedQuery(name = FAIL_RUNNING_JOB, query = "update ToolHistory h set "
-        + "h.finish = CURRENT_TIMESTAMP, h.status = com.branegy.tools.model.ToolHistory$Status.FAILED "
-        + "where "
-        + "h.status = com.branegy.tools.model.ToolHistory$Status.RUNNING"),
-    @NamedQuery(name = DELETE_PREPARED_JOB, query = "delete from ToolHistory h "
+@NamedQuery(name = FAIL_RUNNING_JOB, 
+      query = "update ToolHistory h set "
+            + "h.finish = CURRENT_TIMESTAMP, h.status = com.branegy.tools.model.ToolHistory$Status.FAILED "
             + "where "
-            + "h.status = com.branegy.tools.model.ToolHistory$Status.PREPARED"),
-    @NamedQuery(name = PRUNE_PROJECT_TOOLID_UPTODATE, query = "from ToolHistory h where "
+            + "h.status = com.branegy.tools.model.ToolHistory$Status.RUNNING")
+@NamedQuery(name = DELETE_PREPARED_JOB, 
+      query = "delete from ToolHistory h "
+            + "where "
+            + "h.status = com.branegy.tools.model.ToolHistory$Status.PREPARED")
+@NamedQuery(name = PRUNE_PROJECT_TOOLID_UPTODATE, 
+      query = "from ToolHistory h where "
             + "h.project.id = :projectId and h.finish < :untilDate and "
             + "(h.status='OK' or h.status='FAILED' or h.status='CANCELLED') and "
             + "(:toolId is null or h.toolId=:toolId or h.parentToolId=:toolId)")
-})
 public class ToolHistory extends BaseEntity{
     public static final String DELETE_PREPARED_JOB = "ToolHistory.deletePreparedJob";
     public static final String FAIL_RUNNING_JOB = "ToolHistory.failRunningJob";
     public static final String PRUNE_PROJECT_TOOLID_UPTODATE = "ToolHistory.pruneForProjectToolIdUpDate";
 
-    static final String XML_IMMUTABLE_TYPE = "to-immutable-xml";
-    
     /**
      *  bundle version for processing
      */
@@ -111,12 +73,12 @@ public class ToolHistory extends BaseEntity{
     String toolVersion;
     
     @Column(name="tool",length=64*1024,nullable=false, updatable=false)
-    @Type(type=XML_IMMUTABLE_TYPE)
     @Lob
+    @Convert(converter = ToolConfigAttributeConvertor.class)
     ToolConfig tool;
     
     @Column(name="parameters",length=1024*1024,updatable=false)
-    @Type(type=XML_IMMUTABLE_TYPE)
+    @Convert(converter = ParameterAttributeConverter.class)
     @Lob
     Map<String,Object> parameters;
     

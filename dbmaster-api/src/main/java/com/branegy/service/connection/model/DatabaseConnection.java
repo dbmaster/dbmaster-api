@@ -22,13 +22,13 @@ import javax.persistence.Access;
 import javax.persistence.AccessType;
 import javax.persistence.CollectionTable;
 import javax.persistence.Column;
+import javax.persistence.Convert;
 import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.JoinColumn;
 import javax.persistence.Lob;
 import javax.persistence.ManyToOne;
-import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
@@ -41,10 +41,7 @@ import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
-import org.hibernate.annotations.Parameter;
 import org.hibernate.annotations.SortNatural;
-import org.hibernate.annotations.Type;
-import org.hibernate.annotations.TypeDef;
 import org.hibernate.annotations.Where;
 
 import com.google.inject.Inject;
@@ -56,34 +53,27 @@ import com.branegy.persistence.custom.CustomFieldDiscriminator;
 import com.branegy.persistence.custom.EmbeddableKey;
 import com.branegy.persistence.custom.EmbeddablePrimitiveContainer;
 import com.branegy.persistence.custom.FetchAllObjectIdByProjectSql;
-import com.branegy.persistence.xml.XmlBlobArray;
 
 @Entity
-@NamedQueries({
-    @NamedQuery(name = QUERY_CONNECTION_FIND_ALL_ENABLED_BY_PROJECT, query = "select c from DatabaseConnection c " +
-            "where c.project.id=:projectId and c.disabled = false"),
-    @NamedQuery(name = QUERY_CONNECTION_FULL_LIST, query = "from DatabaseConnection c " +
-            "where c.disabled = false and (:filter is null or (c.project.name || '.' || c.name) LIKE :filter) "+
-            "order by c.project.name asc, c.name asc"),
-    @NamedQuery(name = QUERY_CONNECTION_FULL_LIST_COUNT, query = "select count(c) from DatabaseConnection c " +
-            "where c.disabled = false and (:filter is null or (c.project.name || '.' || c.name) LIKE :filter)"),
-    @NamedQuery(name = QUERY_CONNECTION_FIND_ALL_ENABLED_COUNT, query = "select count(c) from DatabaseConnection c "+
-            "where c.disabled = false"),
-    @NamedQuery(name = QUERY_CONNECTION_FIND_ALL_PAGE_COUNT,
-            query = "select count(c) from DatabaseConnection c " +
-                "where c.project.name || '.' || c.name < :query"),
-    @NamedQuery(name = QUERY_CONNECTION_FIND, query = "select c from DatabaseConnection c " +
-            "where upper(c.name)=upper(:name) and c.project.id=:projectId"),
-    @NamedQuery(name = QUERY_CONNECTION_FIND_FULL_NAME,
-            query = "from DatabaseConnection c where c.project.name || '.' || c.name = :name")
-})
+@NamedQuery(name = QUERY_CONNECTION_FIND_ALL_ENABLED_BY_PROJECT, query = "select c from DatabaseConnection c " +
+        "where c.project.id=:projectId and c.disabled = false")
+@NamedQuery(name = QUERY_CONNECTION_FULL_LIST, query = "from DatabaseConnection c " +
+        "where c.disabled = false and (:filter is null or (c.project.name || '.' || c.name) LIKE :filter) "+
+        "order by c.project.name asc, c.name asc")
+@NamedQuery(name = QUERY_CONNECTION_FULL_LIST_COUNT, query = "select count(c) from DatabaseConnection c " +
+        "where c.disabled = false and (:filter is null or (c.project.name || '.' || c.name) LIKE :filter)")
+@NamedQuery(name = QUERY_CONNECTION_FIND_ALL_ENABLED_COUNT, query = "select count(c) from DatabaseConnection c "+
+        "where c.disabled = false")
+@NamedQuery(name = QUERY_CONNECTION_FIND_ALL_PAGE_COUNT,
+        query = "select count(c) from DatabaseConnection c " +
+            "where c.project.name || '.' || c.name < :query")
+@NamedQuery(name = QUERY_CONNECTION_FIND, query = "select c from DatabaseConnection c " +
+        "where upper(c.name)=upper(:name) and c.project.id=:projectId")
+@NamedQuery(name = QUERY_CONNECTION_FIND_FULL_NAME,
+        query = "from DatabaseConnection c where c.project.name || '.' || c.name = :name")
 @Table(name="db_connection",uniqueConstraints={@UniqueConstraint(columnNames={"name","project_id"})})
 @CustomFieldDiscriminator(DatabaseConnection.CUSTOM_FIELD_DISCRIMINATOR)
 @Cache(usage=CacheConcurrencyStrategy.READ_WRITE)
-@TypeDef(name="to-xml-array",typeClass=XmlBlobArray.class,parameters={
-    @Parameter(name = "alias.connection",
-               value = "property,com.branegy.service.connection.model.DatabaseConnection$PropertyInfo")
-})
 @FetchAllObjectIdByProjectSql("select id from db_connection where project_id=:projectId")
 public class DatabaseConnection extends BaseCustomEntity {
     static final String CUSTOM_FIELD_DISCRIMINATOR = "Connection";
@@ -227,7 +217,7 @@ public class DatabaseConnection extends BaseCustomEntity {
 
     @Column(name="properties")
     @Lob
-    @Type(type="to-xml-array")
+    @Convert(converter = PropertyInfoAttributeConverter.class)
     private PropertyInfo[] properties;
 
     @ManyToOne(optional = false,fetch=FetchType.LAZY)
