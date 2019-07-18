@@ -36,8 +36,10 @@ import com.branegy.persistence.custom.FetchAllObjectIdByProjectSql;
 @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 @CustomFieldDiscriminator(CustomObjectEntity.CUSTOM_FIELD_DISCRIMINATOR)
 @FetchAllObjectIdByProjectSql("SELECT co.id FROM custom_object co "
-    + "WHERE co.object_type_id IN "
-    + "(SELECT cot.id FROM custom_object_type cot WHERE cot.project_id = :projectId AND cot.clazz = :clazz")
+    + "WHERE co.object_type_id IN ("+
+        "SELECT cot.id FROM custom_object_type cot "+
+        "WHERE cot.project_id = :projectId AND cot.clazz = :customClazz"
+    + ")")
 public final class CustomObjectEntity extends BaseCustomEntity {
     static final String CUSTOM_FIELD_DISCRIMINATOR = "CustomObject";
     

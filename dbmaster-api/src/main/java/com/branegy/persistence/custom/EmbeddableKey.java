@@ -30,8 +30,7 @@ public class EmbeddableKey implements Comparable<EmbeddableKey> {
 
     @Override
     public String toString() {
-        return "[fieldName=" + fieldName + ", valueOrder=" + valueOrder + ", entityType=" + entityType
-                + "]";
+        return fieldName + "[" + valueOrder + "]";
     }
 
     @Override

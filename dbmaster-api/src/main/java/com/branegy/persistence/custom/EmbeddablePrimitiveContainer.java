@@ -154,7 +154,7 @@ public class EmbeddablePrimitiveContainer {
     @Override
     public String toString() {
         Object obj = getObject();
-        return obj.getClass().getSimpleName() + ":" + obj;
+        return obj+"["+obj.getClass().getSimpleName()+"]";
     }
 
     public static boolean isSupportWrap(Object object) {

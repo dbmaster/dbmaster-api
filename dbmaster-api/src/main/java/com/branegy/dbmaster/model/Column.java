@@ -68,7 +68,7 @@ import com.branegy.persistence.custom.FetchAllObjectIdByProjectSql;
         "inner join db_model m on m.id = mo.model_id "+
         "where m.project_id = :projectId and dtype='Column'")
 public class Column extends DatabaseObject<ModelObject> {
-    static final String CUSTOM_FIELD_DISCRIMINATOR = "Column";
+    public static final String CUSTOM_FIELD_DISCRIMINATOR = "Column";
     public static final String QUERY_FIND_BY_MODELOBJECTNAME = "Column.findByModelObjectName";
     public static final String QUERY_FIND_ALL_COUNT_LESS_BY_MODELNAME =
             "Column.findAllCountLessByModelIdName";
