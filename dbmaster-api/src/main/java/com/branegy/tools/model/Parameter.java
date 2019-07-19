@@ -2,13 +2,15 @@ package com.branegy.tools.model;
 
 import static org.apache.commons.lang.ArrayUtils.EMPTY_STRING_ARRAY;
 
+import java.io.Serializable;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 
 import com.branegy.dbmaster.custom.CustomFieldConfig.Type;
 import com.branegy.service.core.exception.ApiException;
 
-public class Parameter {
+@SuppressWarnings("serial")
+public class Parameter implements Serializable{
 
     /**
      * Parameter name. Value is passed to execution script using <code>name</code>.

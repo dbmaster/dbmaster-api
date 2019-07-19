@@ -1,5 +1,6 @@
 package com.branegy.tools.model;
 
+import java.io.Serializable;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
@@ -9,7 +10,8 @@ import org.slf4j.LoggerFactory;
 
 import com.branegy.tools.api.ExportType;
 
-public class OutputEngine {
+@SuppressWarnings("serial")
+public class OutputEngine implements Serializable {
     protected static final Logger logger = LoggerFactory.getLogger(OutputEngine.class);
 
     private Set<ExportType> exportType;

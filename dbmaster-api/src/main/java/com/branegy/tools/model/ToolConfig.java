@@ -1,5 +1,6 @@
 package com.branegy.tools.model;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -12,7 +13,8 @@ import com.branegy.tools.api.ExportType;
 import com.branegy.tools.api.ToolExecutionStatusException;
 import com.branegy.tools.model.ToolHistory.Status;
 
-public class ToolConfig {
+@SuppressWarnings("serial")
+public class ToolConfig implements Serializable {
 
     /**
      * Tool id - shouldn't be visible to users.
