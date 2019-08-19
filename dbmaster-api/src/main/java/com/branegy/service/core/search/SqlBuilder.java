@@ -6,12 +6,19 @@ import java.util.regex.Pattern;
 
 public class SqlBuilder{
     private static final Pattern TRY_FROM_STRING = Pattern.compile(
+            "^"+
             "\\s*SELECT\\s+(?<select>.+?)"+
             "\\s+FROM\\s+(?<from>\\S+(?:\\s+\\S+)?)" +
             "(?:\\s+(?<join>.*?JOIN.+?)\\s*)?" + 
             "(?:\\s+WHERE\\s+(?<where>.+?)\\s*)?"+ 
-            "(?:\\s+ORDER\\s+BY\\s+(?<order>.+?)\\s*)?", 
-            
+            "(?:\\s+ORDER\\s+BY\\s+(?<order>.+?)\\s*)?"+
+            "$", 
+            Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
+    /**
+     * select * from (<any>) as X on ....
+     */
+    private static final Pattern FROM_AS_ALIAS = Pattern.compile(
+            "^(?<temp>\\(.+\\))\\s+AS\\s+(?<alias>[^\\s,(){}]+)$", 
             Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
     
     private final StringBuilder select = new StringBuilder(32);
@@ -118,14 +125,23 @@ public class SqlBuilder{
     }
     
     public String getTableAlias() {
-        String[] args = from.toString().trim().split("\\s+");
+        String from = getFrom();
+        String[] args = from.split("\\s+");
         if (args.length==1) {
             return args[0];
         } else if (args.length==2) {
             return args[1];
         } else {
+            Matcher matcher = FROM_AS_ALIAS.matcher(from);
+            if (matcher.matches()) {
+                return matcher.group("alias");
+            }
             throw new IllegalStateException("Can't detect table alias");
         }
+    }
+    
+    public String getFrom() {
+        return from.toString().trim();
     }
     
     @Override
