@@ -10,6 +10,7 @@ import java.net.UnknownHostException;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.Driver;
+import java.util.Objects;
 import java.util.Properties;
 
 import org.slf4j.Logger;
@@ -42,7 +43,7 @@ class JdbcConnector extends Connector {
             if (database!=null && driverInfo.getDatabaseNameProperty()!=null) {
                 properties.setProperty(driverInfo.getDatabaseNameProperty(), database);
             }
-            properties.values().removeIf(java.util.Objects::isNull);
+            properties.values().removeIf(Objects::isNull);
 	
             Driver jdbcDriver = getJdbcDriver();
             if (!jdbcDriver.acceptsURL(databaseConnection.getUrl())) {

@@ -43,7 +43,7 @@ public abstract class BaseCustomEntity extends BaseEntity {
    
     
     public final boolean hasCustomProperties() {
-        return !map.isEmpty();
+        return map!=null && !map.isEmpty();
     }
 
     public final void forEachCustomData(BiConsumer<String, Object> consumer) {
