@@ -65,7 +65,7 @@ import com.branegy.persistence.custom.FetchAllObjectIdByProjectSql;
 })
 @FetchAllObjectIdByProjectSql("select c.id from db_column c "+
         "inner join db_model_object mo on c.owner_id = mo.id "+
-        "inner join db_model m on m.id = mo.model_id "+
+        "inner join db_model_datasource m on m.id = mo.model_id "+
         "where m.project_id = :projectId and dtype='Column'")
 public class Column extends DatabaseObject<ModelObject> {
     public static final String CUSTOM_FIELD_DISCRIMINATOR = "Column";

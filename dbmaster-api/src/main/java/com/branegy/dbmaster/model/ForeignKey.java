@@ -41,7 +41,7 @@ import com.branegy.persistence.custom.FetchAllObjectIdByProjectSql;
 @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 @FetchAllObjectIdByProjectSql("select f.id from db_foreign_key f "+
         "inner join db_model_object mo on f.owner_id = mo.id "+
-        "inner join db_model m on m.id = mo.model_id "+
+        "inner join db_model_datasource m on m.id = mo.model_id "+
         "where m.project_id = :projectId")
 public class ForeignKey extends DatabaseObject<ModelObject> {
     static final String CUSTOM_FIELD_DISCRIMINATOR = "ForeignKey";

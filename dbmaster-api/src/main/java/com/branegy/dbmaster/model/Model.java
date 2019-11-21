@@ -52,7 +52,7 @@ import com.branegy.persistence.custom.FetchAllObjectIdByProjectSql;
 import com.branegy.service.connection.model.DatabaseConnection;
 
 @Entity
-@javax.persistence.Table(name = "db_model", uniqueConstraints={
+@javax.persistence.Table(name = "db_model_datasource", uniqueConstraints={
     @UniqueConstraint(columnNames = {"project_id","name","version"}),
     @UniqueConstraint(columnNames = {"project_id","name","lastSynch"})
 })
@@ -70,7 +70,7 @@ import com.branegy.service.connection.model.DatabaseConnection;
             query = "select count(m) from Model m where m.project.id=:projectId and m.name<:name")
 })
 @Cache(usage=CacheConcurrencyStrategy.READ_WRITE)
-@FetchAllObjectIdByProjectSql("select id from db_model where project_id=:projectId")
+@FetchAllObjectIdByProjectSql("select id from db_model_datasource where project_id=:projectId")
 public class Model extends DatabaseObject<Model> {
     static final String CUSTOM_FIELD_DISCRIMINATOR = "Model";
     
@@ -136,7 +136,7 @@ public class Model extends DatabaseObject<Model> {
     @NotNull
     String version;
     
-    @Formula("(CASE WHEN lastSynch = (select max(m.lastSynch) from db_model m where m.name = name " +
+    @Formula("(CASE WHEN lastSynch = (select max(m.lastSynch) from db_model_datasource m where m.name = name " +
             "and m.project_id = project_id) THEN 1 ELSE 0 END)")
     boolean actualVersion;
     

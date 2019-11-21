@@ -32,7 +32,7 @@ import com.branegy.persistence.custom.FetchAllObjectIdByProjectSql;
 @Cacheable
 @BatchSize(size=100)
 @FetchAllObjectIdByProjectSql("select mo.id from db_model_object mo "+
-        "inner join db_model m on m.id = mo.model_id "+
+        "inner join db_model_datasource m on m.id = mo.model_id "+
         "where m.project_id = :projectId and dtype='0Tabl'")
 public class Table extends ModelObject {
     static final String CUSTOM_FIELD_DISCRIMINATOR = "Table";
