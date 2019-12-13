@@ -51,13 +51,13 @@ import com.branegy.service.core.exception.IllegalStateApiException;
 @BatchSize(size=100)
 @NamedQueries({
     @NamedQuery(name=QUERY_FIND_PAGE, query="select count(mo.id) from ModelObject mo " +
-            "where mo.model.id=:modelId and (TYPE(mo)<:type or (TYPE(mo)=:type and " +
+            "where mo.datasource.id=:modelId and (TYPE(mo)<:type or (TYPE(mo)=:type and " +
             "UPPER(mo.name)<UPPER(:name)))"),
     @NamedQuery(name=QUERY_FIND_BY_NAME, query="select mo from ModelObject mo " +
-            "where mo.model.id=:modelId and TYPE(mo)=:type and UPPER(mo.name)=UPPER(:name)")
+            "where mo.datasource.id=:modelId and TYPE(mo)=:type and UPPER(mo.name)=UPPER(:name)")
 })
 @CustomFieldDiscriminator(ModelObject.CUSTOM_FIELD_DISCRIMINATOR)
-public abstract class ModelObject extends DatabaseObject<Model> {
+public abstract class ModelObject extends DatabaseObject<ModelDataSource> {
     static final String CUSTOM_FIELD_DISCRIMINATOR = "ModelObject";
     public static final String QUERY_FIND_PAGE = "ModelObject.findPage";
     public static final String QUERY_FIND_BY_NAME = "ModelObject.findByName";
@@ -65,7 +65,7 @@ public abstract class ModelObject extends DatabaseObject<Model> {
     @ManyToOne(optional=false,fetch=FetchType.LAZY)
     @OnDelete(action=OnDeleteAction.CASCADE)
     @JoinColumn(name="model_id")
-    Model model;
+    ModelDataSource datasource;
 
     @javax.persistence.Column(name="name",length=255,nullable = false)
     @Size(min=1,max=255)
@@ -139,12 +139,12 @@ public abstract class ModelObject extends DatabaseObject<Model> {
         this.name = name;
     }
 
-    void setModel(Model model) {
-        this.model = model;
+    void setModel(ModelDataSource model) {
+        this.datasource = model;
     }
 
-    public Model getModel() {
-        return model;
+    public ModelDataSource getModel() {
+        return datasource;
     }
 
     <T extends Column> void removeChildColumn(List<T> list, T child, String parameterName) {
@@ -233,12 +233,12 @@ public abstract class ModelObject extends DatabaseObject<Model> {
     }
 
     @Override
-    final void setParent(Model parent) {
-        this.model = parent;
+    final void setParent(ModelDataSource parent) {
+        this.datasource = parent;
     }
 
     @Override
-    final Model getParent() {
-        return model;
+    final ModelDataSource getParent() {
+        return datasource;
     }
 }

@@ -18,7 +18,7 @@ import org.slf4j.LoggerFactory;
 import com.branegy.dbmaster.model.Column;
 import com.branegy.dbmaster.model.DatabaseInfo;
 import com.branegy.dbmaster.model.Function;
-import com.branegy.dbmaster.model.Model;
+import com.branegy.dbmaster.model.ModelDataSource;
 import com.branegy.dbmaster.model.Procedure;
 import com.branegy.dbmaster.model.RevEngineeringOptions;
 import com.branegy.dbmaster.model.RevEngineeringOptions.Filter;
@@ -379,15 +379,14 @@ public abstract class AbstractJdbcDialect implements JdbcDialect {
     }
 
     @Override
-    public Model getModel(String name, RevEngineeringOptions options) {
+    public ModelDataSource getModelDataSource(RevEngineeringOptions options) {
         Connection connection = getConnection(options.getDatabase());
-        return getModel(connection, name, options);
+        return getModelDataSource(connection, options);
     }
     
-    protected Model getModel(Connection connection, String name, RevEngineeringOptions options) {
-        Model model = new Model();
+    protected ModelDataSource getModelDataSource(Connection connection, RevEngineeringOptions options) {
+        ModelDataSource model = new ModelDataSource();
         model.setConnection(connector.getConnectionInfo());
-        model.setName(name);
         model.setOptions(options);
         model.setLastSynch(new Date());
         model.setCustomData("dialect", getDialectName());

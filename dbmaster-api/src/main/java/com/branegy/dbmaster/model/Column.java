@@ -54,14 +54,14 @@ import com.branegy.persistence.custom.FetchAllObjectIdByProjectSql;
             "c.owner.id=:modelObjectId and UPPER(c.name)=UPPER(:name)"),
     @NamedQuery(name=QUERY_FIND_ALL_COUNT_LESS_BY_MODELNAME, query="select count(c.id) " +
             "from Column c " +
-            "where c.owner.model.id=:modelId and " +
+            "where c.owner.datasource.id=:modelId and " +
             "(UPPER(CONCAT(c.owner.name,'.',c.name))<UPPER(:name) or " +
             "(UPPER(CONCAT(c.owner.name,'.',c.name))=UPPER(:name) and TYPE(c.owner)<:type))"),
     @NamedQuery(name=QUERY_FIND_ALL_BY_MODELNAME, query="from Column c " +
-            "where c.owner.model.id=:modelId " +
+            "where c.owner.datasource.id=:modelId " +
             "order by CONCAT('.',c.owner.name,'.',c.name) asc,TYPE(c.owner) asc"),
     @NamedQuery(name=QUERY_FIND_ALL_COUNT_BY_MODELNAME,
-            query="select count(c.id) from Column c where c.owner.model.id=:modelId")
+            query="select count(c.id) from Column c where c.owner.datasource.id=:modelId")
 })
 @FetchAllObjectIdByProjectSql("select c.id from db_column c "+
         "inner join db_model_object mo on c.owner_id = mo.id "+

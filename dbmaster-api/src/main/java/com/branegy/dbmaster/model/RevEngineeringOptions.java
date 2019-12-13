@@ -37,6 +37,11 @@ public class RevEngineeringOptions {
     @NotNull
     String rawConfig;
     
+    
+    // name
+    // filter 
+    // enabled
+    
     public String getDatabase() {
         return database;
     }
