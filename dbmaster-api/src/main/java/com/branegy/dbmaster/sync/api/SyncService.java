@@ -5,7 +5,7 @@ import java.util.List;
 import com.branegy.service.core.QueryRequest;
 
 public interface SyncService {
-     
+    
     /**
      * @param session - session to save
      * @param sessionType - identifier to distinguish different session types
@@ -18,6 +18,7 @@ public interface SyncService {
     SyncSession findSessionById(long sessionId, boolean includePairs);
 
     String generateSyncSessionPreviewHtml(SyncSession syncSession, boolean showChangesOnly);
+    String generateSyncSessionPreviewHtml(List<SyncSession> syncSessionList, boolean showChangesOnly);
     
     String generateSyncSessionPreviewHtml(String templateName, SyncSession syncSession, boolean showChangesOnly);
 

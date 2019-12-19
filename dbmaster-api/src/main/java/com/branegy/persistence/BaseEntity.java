@@ -51,12 +51,12 @@ public abstract class BaseEntity implements IEntity {
         return id;
     }
 
-    @Override
+//    @Override
     public Date getUpdated() {
         return updated;
     }
 
-    @Override
+  //  @Override
     public Date getCreated() {
         return created;
     }
@@ -82,12 +82,12 @@ public abstract class BaseEntity implements IEntity {
         id = 0;
     }
 
-    @Override
+//    @Override
     public String getCreateAuthor() {
         return createAuthor;
     }
 
-    @Override
+//    @Override
     public String getUpdateAuthor() {
         return updateAuthor;
     }

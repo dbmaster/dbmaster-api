@@ -125,4 +125,7 @@ public interface ModelService {
     Model findModelByName(String name);
     Model findModelByName(String name, String fetchPath);
     Model createModel(Model model, String fetchPath);
+    
+    
+    void bindSyncSessionToDataSource(ModelDataSource ds, long syncSessionId);
 }
