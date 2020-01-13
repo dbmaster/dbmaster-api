@@ -62,43 +62,48 @@ public class SqlBuilder{
         }
     }
     
-    public void appendSelect(String select) {
+    public SqlBuilder appendSelect(String select) {
         if (this.select.length()>0){
             this.select.append(',');
         }
         this.select.append(' ');
         this.select.append(select);
+        return this;
     }
 
-    public void appendJoin(String join) {
+    public SqlBuilder appendJoin(String join) {
         if (!join.startsWith(" ")){
             this.join.append(' ');
         }
         this.join.append(join);
+        return this;
     }
 
-    public void appendAndWhere(String where) {
+    public SqlBuilder appendAndWhere(String where) {
         if (hasWhere()) {
             this.where.append(" AND ");
         } else if (!where.startsWith(" ")) {
             this.where.append(' ');
         }
         this.where.append(where);
+        return this;
     }
     
-    public void appendWhere(String where) {
+    public SqlBuilder appendWhere(String where) {
         if (!where.startsWith(" ")) {
             this.where.append(' ');
         }
         this.where.append(where);
+        return this;
     }
 
-    public void appendOrder(String order) {
+    public SqlBuilder appendOrder(String order) {
         String trim = this.order.toString().trim();
         if (trim.length()>0 && !trim.endsWith(",")) {
             this.order.append(", ");
         }
         this.order.append(order);
+        return this;
     }
 
     public boolean hasWhere() {
