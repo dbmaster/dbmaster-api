@@ -80,7 +80,7 @@ public abstract class ModelObject extends DatabaseObject<ModelDataSource> {
     @BatchSize(size=100)
     List<Column> columns;
 
-    @OneToMany(mappedBy="owner",targetEntity=Column.class, orphanRemoval=true,
+    @OneToMany(mappedBy="owner",targetEntity=Parameter.class, orphanRemoval=true,
             cascade={PERSIST, REMOVE, REFRESH, DETACH})
     @Where(clause="DTYPE = 'Parameter'")
     @OrderBy("collectionIndex ASC")
