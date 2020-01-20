@@ -239,7 +239,10 @@ public class Column extends DatabaseObject<ModelObject> {
     @ElementCollection(fetch=FetchType.EAGER)
     @CollectionTable(name=CUSTOMFIELD_VALUE_TABLE, joinColumns = {@JoinColumn(name=ENTITY_ID_COLUMN)})
     @BatchSize(size = 100)
-    @Where(clause=CLAZZ_COLUMN+" = '"+CUSTOM_FIELD_DISCRIMINATOR+"'")
+    // (workaround) hibernate can't override property mapping in subclass. 
+    @Where(clause="("+CLAZZ_COLUMN+"='"+Column.CUSTOM_FIELD_DISCRIMINATOR+"' or "+
+                      CLAZZ_COLUMN+"='"+Parameter.CUSTOM_FIELD_DISCRIMINATOR+"'"
+                + ")")
     @SortNatural
     @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
     protected SortedMap<EmbeddableKey, EmbeddablePrimitiveContainer> getMap() {
