@@ -100,9 +100,9 @@ public final class StandardField{
 
     
     /**
-     * @return column expression
+     * @return column name or expression
      */
-    public final String getColumnExpression() {
+    public final String getColumnName() {
         return columnExpression;
     }
     
