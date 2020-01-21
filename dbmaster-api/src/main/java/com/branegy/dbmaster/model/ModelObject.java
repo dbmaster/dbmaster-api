@@ -73,7 +73,7 @@ public abstract class ModelObject extends DatabaseObject<ModelDataSource> {
     String name;
 
     @OneToMany(mappedBy="owner",targetEntity=Column.class, orphanRemoval=true,
-            cascade={PERSIST, REMOVE, REFRESH, DETACH})
+            cascade={PERSIST, REMOVE, REFRESH, DETACH},fetch = FetchType.LAZY)
     @Where(clause="DTYPE = 'Column'")
     @OrderBy("collectionIndex ASC")
     @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
@@ -81,7 +81,7 @@ public abstract class ModelObject extends DatabaseObject<ModelDataSource> {
     List<Column> columns;
 
     @OneToMany(mappedBy="owner",targetEntity=Parameter.class, orphanRemoval=true,
-            cascade={PERSIST, REMOVE, REFRESH, DETACH})
+            cascade={PERSIST, REMOVE, REFRESH, DETACH},fetch = FetchType.LAZY)
     @Where(clause="DTYPE = 'Parameter'")
     @OrderBy("collectionIndex ASC")
     @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
@@ -89,25 +89,25 @@ public abstract class ModelObject extends DatabaseObject<ModelDataSource> {
     List<Parameter> parameters;
 
     @OneToMany(mappedBy="owner",targetEntity=Index.class, orphanRemoval=true,
-            cascade={PERSIST, REMOVE, REFRESH, DETACH})
+            cascade={PERSIST, REMOVE, REFRESH, DETACH},fetch = FetchType.LAZY)
     @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
     @BatchSize(size=100)
     List<Index> indexes;
 
     @OneToMany(mappedBy="owner",targetEntity=Constraint.class, orphanRemoval=true,
-            cascade={PERSIST, REMOVE, REFRESH, DETACH})
+            cascade={PERSIST, REMOVE, REFRESH, DETACH},fetch = FetchType.LAZY)
     @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
     @BatchSize(size=100)
     List<Constraint> constraints;
 
     @OneToMany(mappedBy="owner",targetEntity=ForeignKey.class, orphanRemoval=true,
-            cascade={PERSIST, REMOVE, REFRESH, DETACH})
+            cascade={PERSIST, REMOVE, REFRESH, DETACH},fetch = FetchType.LAZY)
     @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
     @BatchSize(size=100)
     List<ForeignKey> foreignKeys;
 
     /*@OneToMany(mappedBy="owner",targetEntity=Trigger.class, orphanRemoval=true,
-            cascade={PERSIST, REMOVE, REFRESH, DETACH})
+            cascade={PERSIST, REMOVE, REFRESH, DETACH},fetch = FetchType.LAZY)
     @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
     @BatchSize(size=100)*/
     @Transient
