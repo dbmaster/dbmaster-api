@@ -121,7 +121,7 @@ public interface ModelService {
     
     
     ModelDataSource fetchModelDataSource(String connectionName, RevEngineeringOptions options);
-    List<ModelDataSource> fetchModelDataSource(List<Entry<String,RevEngineeringOptions>> dataSources);
+    List<ModelDataSource> fetchModelDataSource(List<Entry<String,RevEngineeringOptions>> dataSources, String fetchPath);
     
     Model findModelById(long id);
     Model findModelById(long id, String fetchPath);

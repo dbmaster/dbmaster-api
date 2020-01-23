@@ -79,6 +79,7 @@ public class ModelDataSource extends DatabaseObject<ModelDataSource> {
                     "procedures.foreignKeys,procedures.indexes,"+
         "functions.columns,functions.parameters,functions.constraints," +
                     "functions.foreignKeys,functions.indexes";
+    public static final String FETCH_CONNECTION_PROJECT = "connection.project";
     
     @ManyToOne(optional = false,fetch=FetchType.LAZY)
     @OnDelete(action = OnDeleteAction.CASCADE)
