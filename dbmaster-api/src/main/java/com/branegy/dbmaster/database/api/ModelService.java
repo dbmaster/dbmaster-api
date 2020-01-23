@@ -101,18 +101,21 @@ public interface ModelService {
     Slice<ModelObject> getModelObjectList(String modelName, String dataSourceName, String modelObjectName,
             Class<? extends ModelObject> clazz, int limit, String fetchPath);
 
-    SyncSession synchronizeModel(long modelId);
+    SyncSession synchronizeModel(long dataSourceId);
     
     SyncSession compareModel(ModelDataSource sourceModel, ModelDataSource targetModel);
 
     SyncSession compareObjects(DatabaseObject<?> source, DatabaseObject<?> target);
     SyncSession compareObjects(DatabaseObject<?> source, DatabaseObject<?> target, Map<String,Object> params);
     
+    String generateSyncSessionPreviewHtml(SyncSession syncSession, boolean showChangesOnly);
+    
+    
     Collection<CustomFieldConfig> createExtendedPropertiesConfigs(ModelDataSource model);
     
     
     
-    
+    List<Model> getModelList(String filter, String fetchPath);
     Slice<Model> getModelSlice(String filter, String fetchPath);
     Slice<Model> getModelSliceByName(String name, String fetchPath);
     
