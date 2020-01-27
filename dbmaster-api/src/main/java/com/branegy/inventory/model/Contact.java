@@ -41,6 +41,9 @@ public class Contact extends BaseCustomEntity {
     public static final String PHONE = "ContactPhone";
     public static final String EMAIL = "ContactEmail";
     public static final String LAST_SYNC_DATE = "Last Sync Date";
+    public static final String STATUS = "Status";
+    public static final String STATUS_ACTIVE = "Active";
+    public static final String STATUS_INACTIVE = "Inactive";
 
     @ManyToOne(optional = false,fetch=FetchType.LAZY)
     @OnDelete(action = OnDeleteAction.CASCADE)
@@ -61,6 +64,23 @@ public class Contact extends BaseCustomEntity {
     
     public void setContactName(String contactName){
         setCustomData(NAME,contactName);
+    }
+    
+    public String getTitle() {
+        String title = getContactName();
+        String status = getStatus();
+        if (status!=null && !status.equals(STATUS_ACTIVE)) {
+            title += " ("+status+")";
+        }
+        return title;
+    }
+    
+    public String getStatus() {
+        return getCustomData(STATUS); 
+    }
+    
+    public void setStatus(String status){
+        setCustomData(STATUS,status);
     }
 
     @Override
