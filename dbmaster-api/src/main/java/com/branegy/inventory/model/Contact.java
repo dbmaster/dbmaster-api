@@ -66,20 +66,20 @@ public class Contact extends BaseCustomEntity {
         setCustomData(NAME,contactName);
     }
     
-    public String getTitle() {
+    public String getContactTitle() {
         String title = getContactName();
-        String status = getStatus();
-        if (status!=null && !status.equals(STATUS_ACTIVE)) {
+        String status = getContactStatus();
+        if (status!=null && status.equals(STATUS_INACTIVE)) {
             title += " ("+status+")";
         }
         return title;
     }
     
-    public String getStatus() {
+    public String getContactStatus() {
         return getCustomData(STATUS); 
     }
     
-    public void setStatus(String status){
+    public void setContactStatus(String status){
         setCustomData(STATUS,status);
     }
 
